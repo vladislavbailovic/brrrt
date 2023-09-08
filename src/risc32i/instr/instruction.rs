@@ -1,6 +1,6 @@
-use super::part::Part;
 use super::format::Format;
 use super::operation::Operation;
+use super::part::Part;
 
 #[derive(Debug)]
 pub struct Instruction {
@@ -14,7 +14,7 @@ impl Instruction {
         let part = Part::Opcode;
         let opcode = part.get(raw).try_into()?;
 
-        Ok(Self{
+        Ok(Self {
             raw,
             opcode,
             format: opcode.format(),
@@ -43,7 +43,7 @@ impl Instruction {
 #[cfg(test)]
 use super::builder::Builder;
 #[cfg(test)]
-mod test{
+mod test {
     use super::*;
 
     #[test]
@@ -62,10 +62,17 @@ mod test{
 
         let reg1 = inst.get(Part::Reg1).unwrap();
         let expected = 0b00010_000_00000_0000000;
-        assert_eq!(reg1, expected, "got: {:#034b}, want: {:#034b}", reg1, expected);
+        assert_eq!(
+            reg1, expected,
+            "got: {:#034b}, want: {:#034b}",
+            reg1, expected
+        );
         assert_eq!(inst.value(Part::Reg1).unwrap(), 1);
 
-        assert_eq!(inst.get(Part::Imm110).unwrap(), 0b011111111111_00000_000_00000_0000000);
+        assert_eq!(
+            inst.get(Part::Imm110).unwrap(),
+            0b011111111111_00000_000_00000_0000000
+        );
         assert_eq!(inst.value(Part::Imm110).unwrap(), 0b011111111111);
     }
 
@@ -77,7 +84,7 @@ mod test{
             .pack(Part::Reg1, 13)
             .pack(Part::Reg2, 12)
             .pack(Part::Funct7, 0)
-        .build();
+            .build();
         let inst = Instruction::parse(slt).expect("valid instruction");
 
         assert_eq!(inst.opcode, Operation::Math);

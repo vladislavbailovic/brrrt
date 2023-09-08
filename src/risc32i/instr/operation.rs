@@ -4,18 +4,18 @@ use super::part::Part;
 #[repr(u32)]
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub(crate) enum Operation {
-    LUI      = 0b0110111,
-    AUIPC    = 0b0010111,
-    JAL      = 0b1101111,
-    JALR     = 0b1100111,
-    FENCE    = 0b0001111,
+    LUI = 0b0110111,
+    AUIPC = 0b0010111,
+    JAL = 0b1101111,
+    JALR = 0b1100111,
+    FENCE = 0b0001111,
 
-    Branch            = 0b1100011, // BEQ, BNE, BLT, BGE, BLTU, BGEU
-    Load              = 0b0000011, // LB, LH, LW, LBU, LHU
-    Store             = 0b1000011, // SB, SH, SW
-    ImmediateMath     = 0b0010011, // ADDI, SLTI, SLTIU, XORI, ORI, ANDI, SLLI, SLLI, SRLI, SRAI
-    Math              = 0b0110011, // ADD, SUB, SLL, SLT, SLTU, XOR, SRL, SRA, OR, AND
-    Call              = 0b1110011, // ECALL, EBREAK
+    Branch = 0b1100011,        // BEQ, BNE, BLT, BGE, BLTU, BGEU
+    Load = 0b0000011,          // LB, LH, LW, LBU, LHU
+    Store = 0b1000011,         // SB, SH, SW
+    ImmediateMath = 0b0010011, // ADDI, SLTI, SLTIU, XORI, ORI, ANDI, SLLI, SLLI, SRLI, SRAI
+    Math = 0b0110011,          // ADD, SUB, SLL, SLT, SLTU, XOR, SRL, SRA, OR, AND
+    Call = 0b1110011,          // ECALL, EBREAK
 }
 
 impl Operation {
@@ -62,7 +62,7 @@ impl TryFrom<u32> for Operation {
 }
 
 #[cfg(test)]
-mod test{
+mod test {
     use super::*;
 
     #[test]

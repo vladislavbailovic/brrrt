@@ -10,7 +10,6 @@ pub(crate) enum Format {
     Jump,
 }
 
-
 impl Format {
     pub(crate) fn get(&self) -> Vec<Part> {
         match self {
@@ -29,11 +28,7 @@ impl Format {
                 Part::Reg1,
                 Part::Imm110,
             ],
-            Self::UpperImmediate => vec![
-                Part::Opcode,
-                Part::Dest,
-                Part::Imm3112,
-            ],
+            Self::UpperImmediate => vec![Part::Opcode, Part::Dest, Part::Imm3112],
             Self::Store => vec![
                 Part::Opcode,
                 Part::Imm40,
@@ -65,7 +60,7 @@ impl Format {
 }
 
 #[cfg(test)]
-mod test{
+mod test {
     use super::*;
 
     #[test]

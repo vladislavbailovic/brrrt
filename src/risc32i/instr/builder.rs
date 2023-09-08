@@ -1,13 +1,13 @@
-use super::part::Part;
 use super::operation::Operation;
+use super::part::Part;
 
 pub(crate) struct Builder {
-    raw: u32
+    raw: u32,
 }
 
 impl Builder {
     pub(crate) fn new(raw: u32) -> Self {
-        Self{raw}
+        Self { raw }
     }
 
     pub(crate) fn opcode(code: Operation) -> Self {
@@ -16,13 +16,10 @@ impl Builder {
 
     pub(crate) fn pack(&self, part: Part, data: u32) -> Self {
         let packed = data << part.shift();
-        Builder::new(
-            self.raw | (packed & part.mask())
-        )
+        Builder::new(self.raw | (packed & part.mask()))
     }
 
     pub fn build(&self) -> u32 {
         self.raw
     }
 }
-
