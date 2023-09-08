@@ -6,8 +6,8 @@ use risc32i::{
 fn main() -> Result<(), String> {
     let i = Instruction::parse(
         Builder::opcode(Operation::Math)
-            .pack(Part::Funct3, 0b000)
-            .pack(Part::Funct7, 0b0100000) // SUB
+            .pack(Part::Funct3, 0b101)
+            .pack(Part::Funct7, 0b0100000)
             .pack(Part::Reg1, Register::X12 as u32)
             .pack(Part::Reg2, Register::X13 as u32)
             .pack(Part::Dest, Register::X16 as u32)
@@ -20,9 +20,10 @@ fn main() -> Result<(), String> {
     eprintln!("{:?}", Format::Jump);
 
     let mut cpu: Cpu = Default::default();
-    cpu.register.set(Register::X12, 193);
-    cpu.register.set(Register::X13, 32);
+    cpu.register.set(Register::X12, 4);
+    cpu.register.set(Register::X13, 2);
     cpu.execute(i)?;
+    eprintln!("Result: {:?}", cpu.register.get(Register::X16));
     eprintln!("{:?}", cpu);
 
     Ok(())
@@ -51,8 +52,7 @@ impl Cpu {
         let rs1: Register = i.value(Part::Reg1).unwrap().try_into().unwrap();
         let rs2: Register = i.value(Part::Reg2).unwrap().try_into().unwrap();
         let rsd: Register = i.value(Part::Dest).unwrap().try_into().unwrap();
-        eprintln!("doing register math {:#034b}, {:#034b}:", f3, f7);
-        eprintln!("\tvalues from {:?} <op> {:?} go to {:?}", rs1, rs2, rsd);
+        eprintln!("values from {:?} <op> {:?} go to {:?}", rs1, rs2, rsd);
 
         match (f3, f7) {
             (0b000, 0b0000000) => {
@@ -73,12 +73,42 @@ impl Cpu {
                 Ok(())
             }
             (0b011, 0b0000000) => {
-                // TODO: SLT unsigned
-                let cmp = if self.register.get(rs1) < self.register.get(rs2) { 1 } else { 0 };
+                // TODO: SLTU
+                let cmp = if Register::X0 == rs1 {
+                    if self.register.get(rs2) != 0 { 1 } else { 0 }
+                } else {
+                    if self.register.get(rs1) < self.register.get(rs2) { 1 } else { 0 }
+                };
                 self.register.set(rsd, cmp);
                 Ok(())
             }
-            _ => Err("unknown r2r operation"),
+            (0b001, 0b0000000) => {
+                // SLL - logical left shift
+                self.register.set(rsd,
+                    self.register.get(rs1) << (self.register.get(rs2) & 0b000_0000_0000_0000_0000_0000_0000_0001_1111)
+                );
+                Ok(())
+            }
+            (0b101, 0b0000000) => {
+                // SRL - logical right shift TODO: wat
+                eprintln!("SRL");
+                self.register.set(rsd,
+                    self.register.get(rs1) >> (self.register.get(rs2) & 0b000_0000_0000_0000_0000_0000_0000_0001_1111)
+                );
+                Ok(())
+            }
+            (0b101, 0b0100000) => {
+                // SRA - arithmetic right shift TODO: wat
+                eprintln!("SRA");
+                self.register.set(rsd,
+                    self.register.get(rs1) >> (self.register.get(rs2) & 0b000_0000_0000_0000_0000_0000_0000_0001_1111)
+                );
+                Ok(())
+            }
+            _ => {
+                eprintln!("doing register math {:#05b}, {:#09b}:", f3, f7);
+                Err("unknown r2r operation")
+            }
         }
     }
 }
@@ -103,7 +133,7 @@ impl Registers {
 }
 
 #[repr(u32)]
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 enum Register {
     X0,
     X1, // return address of a call

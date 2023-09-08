@@ -76,7 +76,7 @@ impl Part {
             Self::Null | Self::Opcode => 0,
             Self::Dest | Self::Imm40 | Self::B11b => 7,
             Self::Imm41 => 8,
-            Self::Funct3 | Self::Imm3112 | Self::Imm1912 => 13,
+            Self::Funct3 | Self::Imm3112 | Self::Imm1912 => 12,
             Self::Reg1 => 16,
             Self::Reg2 | Self::Imm110 | Self::B11j => 20,
             Self::Imm101 => 21,
