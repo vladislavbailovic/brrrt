@@ -3,6 +3,9 @@ use risc32i::{
     instr::builder::Builder, instr::format::Format, instr::operation::*, instr::part::Part, *,
 };
 
+// tests
+mod math;
+
 fn main() -> Result<(), String> {
     let i = Instruction::parse(
         Builder::opcode(Operation::Math)
@@ -36,14 +39,19 @@ struct Cpu {
 
 impl Cpu {
     fn execute(&mut self, i: Instruction) -> Result<(), &'static str> {
-        match i.opcode {
+        let result = match i.opcode {
             Operation::Math => self.register_math(i),
             Operation::ImmediateMath => {
                 eprintln!("doing immediate math");
                 Ok(())
             }
             _ => Err("unknown opcode"),
+        };
+        if result.is_ok() {
+            self.register
+                .set(Register::PC, self.register.get(Register::PC) + 1);
         }
+        result
     }
 
     fn register_math(&mut self, i: Instruction) -> Result<(), &'static str> {
@@ -68,40 +76,58 @@ impl Cpu {
             }
             (0b010, 0b0000000) => {
                 // SLT
-                let cmp = if self.register.get(rs1) < self.register.get(rs2) { 1 } else { 0 };
+                let cmp = if self.register.get(rs1) < self.register.get(rs2) {
+                    1
+                } else {
+                    0
+                };
                 self.register.set(rsd, cmp);
                 Ok(())
             }
             (0b011, 0b0000000) => {
                 // TODO: SLTU
                 let cmp = if Register::X0 == rs1 {
-                    if self.register.get(rs2) != 0 { 1 } else { 0 }
+                    if self.register.get(rs2) != 0 {
+                        1
+                    } else {
+                        0
+                    }
                 } else {
-                    if self.register.get(rs1) < self.register.get(rs2) { 1 } else { 0 }
+                    if self.register.get(rs1) < self.register.get(rs2) {
+                        1
+                    } else {
+                        0
+                    }
                 };
                 self.register.set(rsd, cmp);
                 Ok(())
             }
             (0b001, 0b0000000) => {
                 // SLL - logical left shift
-                self.register.set(rsd,
-                    self.register.get(rs1) << (self.register.get(rs2) & 0b000_0000_0000_0000_0000_0000_0000_0001_1111)
+                self.register.set(
+                    rsd,
+                    self.register.get(rs1)
+                        << (self.register.get(rs2) & 0b000_0000_0000_0000_0000_0000_0000_0001_1111),
                 );
                 Ok(())
             }
             (0b101, 0b0000000) => {
                 // SRL - logical right shift TODO: wat
                 eprintln!("SRL");
-                self.register.set(rsd,
-                    self.register.get(rs1) >> (self.register.get(rs2) & 0b000_0000_0000_0000_0000_0000_0000_0001_1111)
+                self.register.set(
+                    rsd,
+                    self.register.get(rs1)
+                        >> (self.register.get(rs2) & 0b000_0000_0000_0000_0000_0000_0000_0001_1111),
                 );
                 Ok(())
             }
             (0b101, 0b0100000) => {
                 // SRA - arithmetic right shift TODO: wat
                 eprintln!("SRA");
-                self.register.set(rsd,
-                    self.register.get(rs1) >> (self.register.get(rs2) & 0b000_0000_0000_0000_0000_0000_0000_0001_1111)
+                self.register.set(
+                    rsd,
+                    self.register.get(rs1)
+                        >> (self.register.get(rs2) & 0b000_0000_0000_0000_0000_0000_0000_0001_1111),
                 );
                 Ok(())
             }
@@ -113,16 +139,20 @@ impl Cpu {
     }
 }
 
-#[derive(Default, Debug)]
+#[derive(Debug)]
 struct Registers {
-    data: [u32; 32],
+    data: [u32; 33],
+}
+
+impl Default for Registers {
+    fn default() -> Self {
+        Self {
+            data: [(); 33].map(|_| 0),
+        }
+    }
 }
 
 impl Registers {
-    fn new() -> Self {
-        Default::default()
-    }
-
     fn set(&mut self, key: Register, value: u32) {
         self.data[key as usize] = value;
     }
@@ -207,9 +237,10 @@ impl TryFrom<u32> for Register {
             x if x == Self::X28 as u32 => Ok(Self::X28),
             x if x == Self::X29 as u32 => Ok(Self::X29),
             x if x == Self::X30 as u32 => Ok(Self::X30),
-            x if x == Self::X31 as u32 => Ok(Self::X31),
 
-            _ => Err("unknown opcode"),
+            x if x == Self::PC as u32 => Ok(Self::PC),
+
+            _ => Err("unknown register"),
         }
     }
 }
