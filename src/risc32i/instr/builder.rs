@@ -6,15 +6,15 @@ pub(crate) struct Builder {
 }
 
 impl Builder {
-    pub fn new(raw: u32) -> Self {
+    pub(crate) fn new(raw: u32) -> Self {
         Self{raw}
     }
 
-    pub fn opcode(code: Operation) -> Self {
+    pub(crate) fn opcode(code: Operation) -> Self {
         Self::new(code as u32 | Part::Opcode as u32)
     }
 
-    pub fn pack(&self, part: Part, data: u32) -> Self {
+    pub(crate) fn pack(&self, part: Part, data: u32) -> Self {
         let packed = match part {
             Part::Null => 0,
             Part::Opcode => data,

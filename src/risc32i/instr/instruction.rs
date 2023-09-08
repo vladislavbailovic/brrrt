@@ -1,8 +1,8 @@
-use super::builder::Builder;
 use super::part::Part;
 use super::format::Format;
 use super::operation::Operation;
 
+#[derive(Debug)]
 pub struct Instruction {
     raw: u32,
     opcode: Operation,
@@ -40,6 +40,8 @@ impl Instruction {
     }
 }
 
+#[cfg(test)]
+use super::builder::Builder;
 #[cfg(test)]
 mod test{
     use super::*;
