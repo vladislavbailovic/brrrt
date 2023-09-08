@@ -61,8 +61,21 @@ impl Cpu {
                 Ok(())
             }
             (0b000, 0b0100000) => {
+                // TODO: Overflows are ignored and the low XLEN bits of results are written to the destination rd
                 self.register
                     .set(rsd, self.register.get(rs1) - self.register.get(rs2));
+                Ok(())
+            }
+            (0b010, 0b0000000) => {
+                // SLT
+                let cmp = if self.register.get(rs1) < self.register.get(rs2) { 1 } else { 0 };
+                self.register.set(rsd, cmp);
+                Ok(())
+            }
+            (0b011, 0b0000000) => {
+                // TODO: SLT unsigned
+                let cmp = if self.register.get(rs1) < self.register.get(rs2) { 1 } else { 0 };
+                self.register.set(rsd, cmp);
                 Ok(())
             }
             _ => Err("unknown r2r operation"),
