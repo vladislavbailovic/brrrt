@@ -61,11 +61,12 @@ impl TryFrom<u32> for Operation {
     }
 }
 
-mod test_opcode {
+#[cfg(test)]
+mod test{
     use super::*;
 
     #[test]
-    fn test_lui_extract() {
+    fn lui_extract() {
         let part = Part::Opcode;
         let op = Operation::LUI as u32;
 

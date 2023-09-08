@@ -90,12 +90,18 @@ impl Part {
 
 }
 
-
-mod test_part {
+#[cfg(test)]
+mod test{
     use super::*;
 
     #[test]
-    fn test_part_opcode_extracts_7bit_opcode() {
+    fn null_is_zero() {
+        let part = Part::Null;
+        assert_eq!(part as u32, 0);
+    }
+
+    #[test]
+    fn part_opcode_extracts_7bit_opcode() {
         let part = Part::Opcode;
 
         let actual = part.get(1);
@@ -121,7 +127,7 @@ mod test_part {
     }
 
     #[test]
-    fn test_part_opcode_extracts_7bit_opcode_expected_wrap() {
+    fn part_opcode_extracts_7bit_opcode_expected_wrap() {
         let part = Part::Opcode;
 
         // Expect wrap

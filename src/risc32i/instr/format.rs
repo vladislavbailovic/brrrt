@@ -63,18 +63,19 @@ impl Format {
     }
 }
 
-mod test_format {
+#[cfg(test)]
+mod test{
     use super::*;
 
     #[test]
-    fn test_upper_immediate_parts() {
+    fn upper_immediate_parts() {
         let fmt = Format::UpperImmediate;
         let parts = fmt.get();
         assert_eq!(parts.len(), 3, "got: {}", parts.len());
     }
 
     #[test]
-    fn test_upper_immediate_parts_extraction() {
+    fn upper_immediate_parts_extraction() {
         let fmt = Format::UpperImmediate;
         let instr = 224; // 00000000000000000000000011100000;
         for part in fmt.get() {
@@ -85,5 +86,11 @@ mod test_format {
                 _ => assert!(false, "should not happen"),
             }
         }
+    }
+
+    #[test]
+    fn jump_parts() {
+        let fmt = Format::Jump;
+        assert_eq!(fmt.get().len(), 6);
     }
 }

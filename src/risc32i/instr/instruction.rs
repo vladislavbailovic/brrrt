@@ -40,11 +40,12 @@ impl Instruction {
     }
 }
 
-mod test_instruction {
+#[cfg(test)]
+mod test{
     use super::*;
 
     #[test]
-    fn test_add_immediate() {
+    fn add_immediate() {
         let raw = 0b011111111111_00010_000_00001_0010011; // ADDI rd=1 rs=2 imm=whatever
         let inst = Instruction::parse(raw).expect("valid instruction");
 
@@ -67,7 +68,7 @@ mod test_instruction {
     }
 
     #[test]
-    fn test_add_reg2reg() {
+    fn add_reg2reg() {
         let slt = Builder::opcode(Operation::Math)
             .pack(Part::Dest, 2)
             .pack(Part::Funct3, 0b010)
@@ -86,5 +87,3 @@ mod test_instruction {
         assert_eq!(inst.value(Part::Funct7).unwrap(), 0);
     }
 }
-
-
