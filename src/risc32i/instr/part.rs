@@ -72,20 +72,23 @@ impl Part {
         from & mask
     }
 
+    pub(crate) fn shift(&self) -> u32 {
+        match self {
+            Self::Null | Self::Opcode => 0,
+            Self::Dest | Self::Imm40 | Self::B11b => 7,
+            Self::Imm41 => 8,
+            Self::Funct3 | Self::Imm3112 | Self::Imm1912 => 13,
+            Self::Reg1   => 16,
+            Self::Reg2 | Self::Imm110 | Self::B11j => 20,
+            Self::Imm101 => 21,
+            Self::Funct7 | Self::Imm115 | Self::Imm105 => 25,
+            Self::B12b | Self::B20j => 31,
+        }
+    }
+
     pub(crate) fn value(&self, from: u32) -> u32 {
         let raw = self.get(from);
-        match self {
-            Self::Null => 0,
-            Self::Opcode => raw,
-            Self::Dest | Self::Imm40 | Self::B11b => raw >> 7,
-            Self::Imm41 => raw >> 8,
-            Self::Funct3 | Self::Imm3112 | Self::Imm1912 => raw >> 13,
-            Self::Reg1   => raw >> 16,
-            Self::Reg2 | Self::Imm110 | Self::B11j => raw >> 20,
-            Self::Imm101 => raw >> 21,
-            Self::Funct7 | Self::Imm115 | Self::Imm105 => raw >> 25,
-            Self::B12b | Self::B20j => raw >> 31,
-        }
+        raw >> self.shift()
     }
 
 }
