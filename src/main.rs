@@ -4,15 +4,15 @@ use risc32i::{
 };
 
 // tests
+mod immediate_math;
 mod math;
 
 fn main() -> Result<(), String> {
     let i = Instruction::parse(
-        Builder::opcode(Operation::Math)
+        Builder::opcode(Operation::ImmediateMath)
             .pack(Part::Funct3, 0b101)
-            .pack(Part::Funct7, 0b0100000)
             .pack(Part::Reg1, Register::X12 as u32)
-            .pack(Part::Reg2, Register::X13 as u32)
+            .pack(Part::Imm110, 2)
             .pack(Part::Dest, Register::X16 as u32)
             .build(),
     )?;
@@ -22,9 +22,10 @@ fn main() -> Result<(), String> {
     eprintln!("{:?}", Part::Null);
     eprintln!("{:?}", Format::Jump);
 
+    eprintln!("Register X21:{:?}", Register::X21 as u32);
+
     let mut cpu: Cpu = Default::default();
     cpu.register.set(Register::X12, 4);
-    cpu.register.set(Register::X13, 2);
     cpu.execute(i)?;
     eprintln!("Result: {:?}", cpu.register.get(Register::X16));
     eprintln!("{:?}", cpu);
@@ -41,10 +42,7 @@ impl Cpu {
     fn execute(&mut self, i: Instruction) -> Result<(), &'static str> {
         let result = match i.opcode {
             Operation::Math => self.register_math(i),
-            Operation::ImmediateMath => {
-                eprintln!("doing immediate math");
-                Ok(())
-            }
+            Operation::ImmediateMath => self.immediate_math(i),
             _ => Err("unknown opcode"),
         };
         if result.is_ok() {
@@ -52,6 +50,102 @@ impl Cpu {
                 .set(Register::PC, self.register.get(Register::PC) + 1);
         }
         result
+    }
+
+    fn immediate_math(&mut self, i: Instruction) -> Result<(), &'static str> {
+        let f3 = i.value(Part::Funct3).unwrap();
+
+        match f3 {
+            0b001 | 0b101 => self.immediate_math_shift(i),
+            _ => self.immediate_math_normal(i),
+        }
+    }
+
+    fn immediate_math_normal(&mut self, i: Instruction) -> Result<(), &'static str> {
+        let f3 = i.value(Part::Funct3).unwrap();
+        let immediate = i.value(Part::Imm110).unwrap();
+        let rs1: Register = i.value(Part::Reg1).unwrap().try_into().unwrap();
+        let rsd: Register = i.value(Part::Dest).unwrap().try_into().unwrap();
+
+        match f3 {
+            0b000 => {
+                self.register.set(rsd, self.register.get(rs1) + immediate);
+                Ok(())
+            }
+            0b010 => {
+                // SLTI
+                let a = self.register.get(rs1) as i32;
+                let b = immediate as i32;
+                let cmp = if a < b { 1 } else { 0 };
+                self.register.set(rsd, cmp);
+                Ok(())
+            }
+            0b011 => {
+                // SLTIU
+                let a = self.register.get(rs1);
+                let b = immediate;
+                let cmp = if immediate == 1 {
+                    if a == 0 {
+                        1
+                    } else {
+                        0
+                    }
+                } else if a < b {
+                    1
+                } else {
+                    0
+                };
+                self.register.set(rsd, cmp);
+                Ok(())
+            }
+            0b100 => {
+                let reg = self.register.get(rs1);
+                let simm = 0xFFF - immediate as i32 - 1; // TODO: wat!
+                let result = if simm == -1 { !reg } else { reg ^ immediate };
+                self.register.set(rsd, result);
+                Ok(())
+            }
+            0b110 => {
+                self.register.set(rsd, self.register.get(rs1) | immediate);
+                Ok(())
+            }
+            0b111 => {
+                self.register.set(rsd, self.register.get(rs1) & immediate);
+                Ok(())
+            }
+            _ => Err("invalid immediate math operation"),
+        }
+    }
+
+    fn immediate_math_shift(&mut self, i: Instruction) -> Result<(), &'static str> {
+        let f3 = i.value(Part::Funct3).unwrap();
+        let raw_immediate = i.value(Part::Imm110).unwrap();
+
+        let immediate = raw_immediate & 0b000_0000_0000_0000_0000_0000_0000_0001_1111;
+        let shift = raw_immediate & 0b000_0000_0000_0000_0000_0000_1111_1110_0000;
+
+        let rs1: Register = i.value(Part::Reg1).unwrap().try_into().unwrap();
+        let rsd: Register = i.value(Part::Dest).unwrap().try_into().unwrap();
+
+        match (f3, shift) {
+            (0b001, 0b0000000) => {
+                // SLLI
+                self.register.set(rsd, self.register.get(rs1) << immediate);
+                Ok(())
+            }
+            (0b101, 0b0000000) => {
+                // SRLI
+                self.register.set(rsd, self.register.get(rs1) >> immediate);
+                Ok(())
+            }
+            (0b101, 0b0100000) => {
+                // SRAI: TODO: is this right?
+                self.register
+                    .set(rsd, self.register.get(rs1).wrapping_shr(immediate));
+                Ok(())
+            }
+            _ => Err("invalid immediate math shift operation"),
+        }
     }
 
     fn register_math(&mut self, i: Instruction) -> Result<(), &'static str> {

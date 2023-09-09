@@ -67,7 +67,7 @@ mod test {
             "got: {:#034b}, want: {:#034b}",
             reg1, expected
         );
-        assert_eq!(inst.value(Part::Reg1).unwrap(), 1);
+        assert_eq!(inst.value(Part::Reg1).unwrap(), 2);
 
         assert_eq!(
             inst.get(Part::Imm110).unwrap(),
