@@ -48,12 +48,35 @@ impl Cpu {
             Operation::Math => self.register_math(i),
             Operation::ImmediateMath => self.immediate_math(i),
             Operation::JAL => self.unconditional_jump(i),
+            Operation::JALR => self.unconditional_register_jump(i),
             _ => Err("unknown opcode"),
         };
         if result.is_ok() {
             self.register.increment(Register::PC);
         }
         result
+    }
+
+    fn unconditional_register_jump(&mut self, i: Instruction) -> Result<(), &'static str> {
+        let rsd: Register = i
+            .value(Part::Dest)
+            .expect("invalid destination")
+            .try_into()
+            .expect("invalid register");
+        let rs1: Register = i
+            .value(Part::Reg1)
+            .expect("invalid reg1")
+            .try_into()
+            .expect("invalid register");
+        let immediate = i.value(Part::Imm110).expect("invalid immediate value 11:0");
+
+        let pc = self.register.get(Register::PC);
+        let address =
+            (self.register.get(rs1) + immediate) & 0b0111_1111_1111_1111_1111_1111_1111_1111;
+        self.register.set(rsd, pc + REGISTER_INCREMENT);
+        self.register
+            .set(Register::PC, address - REGISTER_INCREMENT); // Because on Ok PC gets incremented
+        Ok(())
     }
 
     fn unconditional_jump(&mut self, i: Instruction) -> Result<(), &'static str> {
@@ -68,7 +91,9 @@ impl Cpu {
             | i.value(Part::Imm1912).expect("invalid immediate 10:1");
         // TODO: sign-extended?
         let pc = self.register.get(Register::PC);
-        self.register.set(rsd, pc + REGISTER_INCREMENT);
+        if rsd != Register::X0 {
+            self.register.set(rsd, pc + REGISTER_INCREMENT);
+        }
         self.register
             .set(Register::PC, pc + immediate - REGISTER_INCREMENT); // because Ok will increment PC
         Ok(())
