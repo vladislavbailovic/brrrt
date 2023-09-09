@@ -76,7 +76,24 @@ impl Cpu {
             }
             (0b010, 0b0000000) => {
                 // SLT
-                let cmp = if self.register.get(rs1) < self.register.get(rs2) {
+                let a = self.register.get(rs1) as i32;
+                let b = self.register.get(rs2) as i32;
+                let cmp = if a < b { 1 } else { 0 };
+                self.register.set(rsd, cmp);
+                Ok(())
+            }
+            (0b011, 0b0000000) => {
+                // SLTU
+                let is_zero_register = Register::X0 == rs1;
+                let a = self.register.get(rs1);
+                let b = self.register.get(rs2);
+                let cmp = if is_zero_register {
+                    if b != 0 {
+                        1
+                    } else {
+                        0
+                    }
+                } else if a < b {
                     1
                 } else {
                     0
@@ -84,26 +101,7 @@ impl Cpu {
                 self.register.set(rsd, cmp);
                 Ok(())
             }
-            (0b011, 0b0000000) => {
-                // TODO: SLTU
-                let cmp = if Register::X0 == rs1 {
-                    if self.register.get(rs2) != 0 {
-                        1
-                    } else {
-                        0
-                    }
-                } else {
-                    if self.register.get(rs1) < self.register.get(rs2) {
-                        1
-                    } else {
-                        0
-                    }
-                };
-                self.register.set(rsd, cmp);
-                Ok(())
-            }
             (0b001, 0b0000000) => {
-                // SLL - logical left shift
                 self.register.set(
                     rsd,
                     self.register.get(rs1)
@@ -112,8 +110,7 @@ impl Cpu {
                 Ok(())
             }
             (0b101, 0b0000000) => {
-                // SRL - logical right shift TODO: wat
-                eprintln!("SRL");
+                // SRL - logical right shift
                 self.register.set(
                     rsd,
                     self.register.get(rs1)
@@ -122,13 +119,25 @@ impl Cpu {
                 Ok(())
             }
             (0b101, 0b0100000) => {
-                // SRA - arithmetic right shift TODO: wat
-                eprintln!("SRA");
-                self.register.set(
-                    rsd,
-                    self.register.get(rs1)
-                        >> (self.register.get(rs2) & 0b000_0000_0000_0000_0000_0000_0000_0001_1111),
-                );
+                // SRA - arithmetic right shift
+                let a = self.register.get(rs1);
+                let b = self.register.get(rs2) & 0b000_0000_0000_0000_0000_0000_0000_0001_1111;
+                self.register.set(rsd, a.wrapping_shr(b)); // TODO: is this right?
+                Ok(())
+            }
+            (0b100, 0b0000000) => {
+                self.register
+                    .set(rsd, self.register.get(rs1) ^ self.register.get(rs2));
+                Ok(())
+            }
+            (0b110, 0b0000000) => {
+                self.register
+                    .set(rsd, self.register.get(rs1) | self.register.get(rs2));
+                Ok(())
+            }
+            (0b111, 0b0000000) => {
+                self.register
+                    .set(rsd, self.register.get(rs1) & self.register.get(rs2));
                 Ok(())
             }
             _ => {
