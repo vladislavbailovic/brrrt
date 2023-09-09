@@ -4,7 +4,11 @@ use risc32i::{
 };
 
 // tests
+#[cfg(test)]
 mod immediate_math;
+#[cfg(test)]
+mod jumps;
+#[cfg(test)]
 mod math;
 
 fn main() -> Result<(), String> {
@@ -43,13 +47,31 @@ impl Cpu {
         let result = match i.opcode {
             Operation::Math => self.register_math(i),
             Operation::ImmediateMath => self.immediate_math(i),
+            Operation::JAL => self.unconditional_jump(i),
             _ => Err("unknown opcode"),
         };
         if result.is_ok() {
-            self.register
-                .set(Register::PC, self.register.get(Register::PC) + 1);
+            self.register.increment(Register::PC);
         }
         result
+    }
+
+    fn unconditional_jump(&mut self, i: Instruction) -> Result<(), &'static str> {
+        let rsd: Register = i
+            .value(Part::Dest)
+            .expect("invalid destination")
+            .try_into()
+            .expect("invalid register");
+        let immediate = i.value(Part::B20j).expect("invalid b20j")
+            | i.value(Part::Imm101).expect("invalid immediate 10:1")
+            | i.value(Part::B11j).expect("invalid b11j")
+            | i.value(Part::Imm1912).expect("invalid immediate 10:1");
+        // TODO: sign-extended?
+        let pc = self.register.get(Register::PC);
+        self.register.set(rsd, pc + REGISTER_INCREMENT);
+        self.register
+            .set(Register::PC, pc + immediate - REGISTER_INCREMENT); // because Ok will increment PC
+        Ok(())
     }
 
     fn immediate_math(&mut self, i: Instruction) -> Result<(), &'static str> {
@@ -242,6 +264,8 @@ impl Cpu {
     }
 }
 
+const REGISTER_INCREMENT: u32 = 1; // TODO: or 4?
+
 #[derive(Debug)]
 struct Registers {
     data: [u32; 33],
@@ -262,6 +286,10 @@ impl Registers {
 
     fn get(&self, key: Register) -> u32 {
         self.data[key as usize]
+    }
+
+    fn increment(&mut self, key: Register) {
+        self.data[key as usize] += REGISTER_INCREMENT; // TODO: 4 vs 1? For PC only?
     }
 }
 

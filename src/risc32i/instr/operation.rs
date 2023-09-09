@@ -23,7 +23,7 @@ impl Operation {
         match self {
             Self::LUI => Format::UpperImmediate,
             Self::AUIPC => Format::UpperImmediate,
-            Self::JAL => Format::UpperImmediate,
+            Self::JAL => Format::Jump,
             Self::JALR => Format::Immediate,
             Self::FENCE => Format::Immediate, // Nope!
 

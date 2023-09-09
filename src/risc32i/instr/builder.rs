@@ -190,55 +190,22 @@ mod test_imm110 {
 }
 
 #[cfg(test)]
-mod imm40 {
+mod b20j {
     use super::*;
 
-    fn pack_imm40_zero() {
-        let i = Builder::opcode(Operation::ImmediateMath)
-            .pack(Part::Imm40, 0)
-            .build();
+    #[test]
+    fn set() {
+        let i = Builder::opcode(Operation::JAL).pack(Part::B20j, 1).build();
         eprintln!("instruction: {:#034b}", i);
         let p = Instruction::parse(i).unwrap();
-        assert_eq!(p.value(Part::Imm40).unwrap(), 0);
+        assert_eq!(p.value(Part::B20j).unwrap(), 1);
     }
 
-    fn pack_imm40_one() {
-        let i = Builder::opcode(Operation::ImmediateMath)
-            .pack(Part::Imm40, 1)
-            .build();
+    #[test]
+    fn unset() {
+        let i = Builder::opcode(Operation::JAL).pack(Part::B20j, 0).build();
         eprintln!("instruction: {:#034b}", i);
         let p = Instruction::parse(i).unwrap();
-        assert_eq!(p.value(Part::Imm40).unwrap(), 1);
-    }
-
-    fn pack_imm40_five() {
-        let i = Builder::opcode(Operation::ImmediateMath)
-            .pack(Part::Imm40, 5)
-            .build();
-        eprintln!("instruction: {:#034b}", i);
-        let p = Instruction::parse(i).unwrap();
-        assert_eq!(p.value(Part::Imm40).unwrap(), 5);
-    }
-
-    fn pack_imm40_one_imm115_one() {
-        let i = Builder::opcode(Operation::ImmediateMath)
-            .pack(Part::Imm40, 1)
-            .pack(Part::Imm115, 1)
-            .build();
-        eprintln!("instruction: {:#034b}", i);
-        let p = Instruction::parse(i).unwrap();
-        assert_eq!(p.value(Part::Imm40).unwrap(), 1);
-        assert_eq!(p.value(Part::Imm115).unwrap(), 1);
-    }
-
-    fn pack_imm40_five_imm115_one() {
-        let i = Builder::opcode(Operation::ImmediateMath)
-            .pack(Part::Imm40, 5)
-            .pack(Part::Imm115, 1)
-            .build();
-        eprintln!("instruction: {:#034b}", i);
-        let p = Instruction::parse(i).unwrap();
-        assert_eq!(p.value(Part::Imm40).unwrap(), 5);
-        assert_eq!(p.value(Part::Imm115).unwrap(), 1);
+        assert_eq!(p.value(Part::B20j).unwrap(), 0);
     }
 }
