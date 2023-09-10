@@ -1,9 +1,7 @@
 #[cfg(test)]
 use crate::*;
 #[cfg(test)]
-use risc32i::{
-    instr::builder::Builder, instr::format::Format, instr::operation::*, instr::part::Part, *,
-};
+use risc32i::{instr::builder::Builder, instr::part::Part};
 
 #[cfg(test)]
 struct Test {

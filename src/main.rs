@@ -7,6 +7,8 @@ use risc32i::{
 #[cfg(test)]
 mod branches;
 #[cfg(test)]
+mod immediate;
+#[cfg(test)]
 mod immediate_math;
 #[cfg(test)]
 mod jumps;
@@ -47,6 +49,8 @@ struct Cpu {
 impl Cpu {
     fn execute(&mut self, i: Instruction) -> Result<(), &'static str> {
         let result = match i.opcode {
+            Operation::LUI => self.load_upper_immediate(i),
+            Operation::AUIPC => self.add_upper_immediate(i),
             Operation::Math => self.register_math(i),
             Operation::ImmediateMath => self.immediate_math(i),
             Operation::JAL => self.unconditional_jump(i),
@@ -60,15 +64,42 @@ impl Cpu {
         result
     }
 
+    fn add_upper_immediate(&mut self, i: Instruction) -> Result<(), &'static str> {
+        let rsd: Register = i
+            .value(Part::Dest)
+            .expect("invalid dest")
+            .try_into()
+            .expect("invalid register");
+        let immediate = i.value(Part::Imm3112).expect("invalid immediate 31:12");
+        let pc = self.register.get(Register::PC);
+        self.register.set(
+            rsd,
+            (immediate & 0b0000_0000_0000_1111_1111_1111_1111_1111) + pc,
+        );
+        Ok(())
+    }
+
+    fn load_upper_immediate(&mut self, i: Instruction) -> Result<(), &'static str> {
+        let rsd: Register = i
+            .value(Part::Dest)
+            .expect("invalid dest")
+            .try_into()
+            .expect("invalid register");
+        let immediate = i.value(Part::Imm3112).expect("invalid immediate 31:12");
+        self.register
+            .set(rsd, immediate & 0b0000_0000_0000_1111_1111_1111_1111_1111);
+        Ok(())
+    }
+
     fn branch(&mut self, i: Instruction) -> Result<(), &'static str> {
         let im41 = i.value(Part::Imm41).expect("invalid immediate 4:1")
             | i.value(Part::B11b).expect("invalid b11b");
         let im12 = i.value(Part::B12b).expect("invalid b12b")
             | i.value(Part::Imm105).expect("invalid immediate 10:5");
         let address = (im12 << 5) | im41; // TODO: is this right?
-        // eprintln!("immediate 1: {:#034b} ({})", im41, im41);
-        // eprintln!("immediate 2: {:#034b} ({})", im12, im12);
-        // eprintln!("immediate R: {:#034b} ({})", address, address);
+                                          // eprintln!("immediate 1: {:#034b} ({})", im41, im41);
+                                          // eprintln!("immediate 2: {:#034b} ({})", im12, im12);
+                                          // eprintln!("immediate R: {:#034b} ({})", address, address);
         if address % 2 != 0 {
             // TODO: is this right? The 12-bit B-immediate encodes
             // signed offsets in multiples of 2
@@ -397,6 +428,7 @@ impl Registers {
 
 #[repr(u32)]
 #[derive(Debug, PartialEq)]
+#[allow(dead_code)]
 enum Register {
     X0,
     X1, // return address of a call

@@ -1,18 +1,16 @@
 #[cfg(test)]
 mod normal {
     use crate::*;
-    use risc32i::{
-        instr::builder::Builder, instr::format::Format, instr::operation::*, instr::part::Part, *,
-    };
+    use risc32i::{instr::builder::Builder, instr::part::Part};
 
-    struct test {
+    struct Test {
         funct3: u32,
         immediate: u32,
         rs1: u32,
         expected: u32,
     }
 
-    fn apply(t: test) {
+    fn apply(t: Test) {
         let i = Instruction::parse(
             Builder::opcode(Operation::ImmediateMath)
                 .pack(Part::Funct3, t.funct3)
@@ -36,7 +34,7 @@ mod normal {
 
     #[test]
     fn addi() {
-        apply(test {
+        apply(Test {
             funct3: 0b000,
             rs1: 1,
             immediate: 1,
@@ -46,7 +44,7 @@ mod normal {
 
     #[test]
     fn slti_reg_lt_immediate_unsigned() {
-        apply(test {
+        apply(Test {
             funct3: 0b010,
             rs1: 1,
             immediate: 2,
@@ -56,7 +54,7 @@ mod normal {
 
     #[test]
     fn slti_reg_not_lt_immediate_unsigned() {
-        apply(test {
+        apply(Test {
             funct3: 0b010,
             rs1: 2,
             immediate: 1,
@@ -67,7 +65,7 @@ mod normal {
     #[test]
     fn slti_reg_lt_immediate_signed() {
         let neg = -3;
-        apply(test {
+        apply(Test {
             funct3: 0b010,
             rs1: neg as u32,
             immediate: 2,
@@ -77,7 +75,7 @@ mod normal {
 
     #[test]
     fn sltiu_reg_lt_immediate_unsigned() {
-        apply(test {
+        apply(Test {
             funct3: 0b011,
             rs1: 1,
             immediate: 2,
@@ -87,7 +85,7 @@ mod normal {
 
     #[test]
     fn sltiu_reg_not_lt_immediate_unsigned() {
-        apply(test {
+        apply(Test {
             funct3: 0b011,
             rs1: 2,
             immediate: 1,
@@ -97,13 +95,13 @@ mod normal {
 
     #[test]
     fn sltiu_reg_not_lt_immediate_note_1() {
-        apply(test {
+        apply(Test {
             funct3: 0b011,
             rs1: 0,
             immediate: 1,
             expected: 1,
         });
-        apply(test {
+        apply(Test {
             funct3: 0b011,
             rs1: 1,
             immediate: 1,
@@ -114,7 +112,7 @@ mod normal {
     #[test]
     fn sltiu_reg_lt_immediate_signed() {
         let neg = -3;
-        apply(test {
+        apply(Test {
             funct3: 0b011,
             rs1: neg as u32,
             immediate: 2,
@@ -124,7 +122,7 @@ mod normal {
 
     #[test]
     fn xori() {
-        apply(test {
+        apply(Test {
             funct3: 0b100,
             rs1: 4,
             immediate: 2,
@@ -136,7 +134,7 @@ mod normal {
     fn xori_note() {
         let neg = -1;
         let neg4 = -4;
-        apply(test {
+        apply(Test {
             funct3: 0b100,
             rs1: 3,
             immediate: neg as u32,
@@ -146,7 +144,7 @@ mod normal {
 
     #[test]
     fn ori() {
-        apply(test {
+        apply(Test {
             funct3: 0b110,
             rs1: 5,
             immediate: 3,
@@ -156,7 +154,7 @@ mod normal {
 
     #[test]
     fn andi() {
-        apply(test {
+        apply(Test {
             funct3: 0b111,
             rs1: 5,
             immediate: 3,
@@ -168,11 +166,9 @@ mod normal {
 #[cfg(test)]
 mod shift {
     use crate::*;
-    use risc32i::{
-        instr::builder::Builder, instr::format::Format, instr::operation::*, instr::part::Part, *,
-    };
+    use risc32i::{instr::builder::Builder, instr::part::Part};
 
-    struct test {
+    struct Test {
         funct3: u32,
         immediate: u32,
         shift: u32,
@@ -180,7 +176,7 @@ mod shift {
         expected: u32,
     }
 
-    fn apply(t: test) {
+    fn apply(t: Test) {
         let immediate = t.shift | t.immediate;
         let i = Instruction::parse(
             Builder::opcode(Operation::ImmediateMath)
@@ -205,7 +201,7 @@ mod shift {
 
     #[test]
     fn slli() {
-        apply(test {
+        apply(Test {
             funct3: 0b001,
             shift: 0b0000000,
             immediate: 2,
@@ -216,7 +212,7 @@ mod shift {
 
     #[test]
     fn srli() {
-        apply(test {
+        apply(Test {
             funct3: 0b101,
             shift: 0b0000000,
             immediate: 2,
@@ -227,7 +223,7 @@ mod shift {
 
     #[test]
     fn srai_simple_case() {
-        apply(test {
+        apply(Test {
             funct3: 0b101,
             shift: 0b0100000,
             immediate: 2,

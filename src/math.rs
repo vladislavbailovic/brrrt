@@ -1,11 +1,9 @@
 #[cfg(test)]
 mod r2r {
     use crate::*;
-    use risc32i::{
-        instr::builder::Builder, instr::format::Format, instr::operation::*, instr::part::Part, *,
-    };
+    use risc32i::{instr::builder::Builder, instr::part::Part};
 
-    struct test {
+    struct Test {
         funct3: u32,
         funct7: u32,
         rs1: u32,
@@ -13,7 +11,7 @@ mod r2r {
         expected: u32,
     }
 
-    fn apply(t: test) {
+    fn apply(t: Test) {
         let i = Instruction::parse(
             Builder::opcode(Operation::Math)
                 .pack(Part::Funct3, t.funct3)
@@ -40,7 +38,7 @@ mod r2r {
 
     #[test]
     fn add() {
-        apply(test {
+        apply(Test {
             funct3: 0b000,
             funct7: 0b0000000,
             rs1: 4,
@@ -51,7 +49,7 @@ mod r2r {
 
     #[test]
     fn sub() {
-        apply(test {
+        apply(Test {
             funct3: 0b000,
             funct7: 0b0100000,
             rs1: 193,
@@ -62,7 +60,7 @@ mod r2r {
 
     #[test]
     fn slt_less_than() {
-        apply(test {
+        apply(Test {
             funct3: 0b010,
             funct7: 0b0000000,
             rs1: 2,
@@ -74,7 +72,7 @@ mod r2r {
     #[test]
     fn slt_not_less_than_with_unsigned_no_overflow() {
         let neg = -2;
-        apply(test {
+        apply(Test {
             funct3: 0b010,
             funct7: 0b0000000,
             rs1: neg as u32,
@@ -85,7 +83,7 @@ mod r2r {
 
     #[test]
     fn slt_not_less_than() {
-        apply(test {
+        apply(Test {
             funct3: 0b010,
             funct7: 0b0000000,
             rs1: 4,
@@ -96,7 +94,7 @@ mod r2r {
 
     #[test]
     fn sltu_simple_case_less_than() {
-        apply(test {
+        apply(Test {
             funct3: 0b010,
             funct7: 0b0000000,
             rs1: 2,
@@ -108,7 +106,7 @@ mod r2r {
     #[test]
     fn sltu_simple_case_less_than_with_unsigned_overflow() {
         let neg = -2;
-        apply(test {
+        apply(Test {
             funct3: 0b010,
             funct7: 0b0000000,
             rs1: 2,
@@ -119,7 +117,7 @@ mod r2r {
 
     #[test]
     fn sltu_simple_case_not_less_than() {
-        apply(test {
+        apply(Test {
             funct3: 0b010,
             funct7: 0b0000000,
             rs1: 4,
@@ -130,7 +128,7 @@ mod r2r {
 
     #[test]
     fn sll_shifts_left() {
-        apply(test {
+        apply(Test {
             funct3: 0b001,
             funct7: 0b0000000,
             rs1: 4,
@@ -141,7 +139,7 @@ mod r2r {
 
     #[test]
     fn sll_shifts_left_only_top_5_bits() {
-        apply(test {
+        apply(Test {
             funct3: 0b001,
             funct7: 0b0000000,
             rs1: 4,
@@ -152,7 +150,7 @@ mod r2r {
 
     #[test]
     fn srl_shifts_left() {
-        apply(test {
+        apply(Test {
             funct3: 0b101,
             funct7: 0b0000000,
             rs1: 4,
@@ -163,7 +161,7 @@ mod r2r {
 
     #[test]
     fn srl_shifts_left_only_top_5_bits() {
-        apply(test {
+        apply(Test {
             funct3: 0b101,
             funct7: 0b0000000,
             rs1: 4,
@@ -174,7 +172,7 @@ mod r2r {
 
     #[test]
     fn sra_simple_case_shifts_left() {
-        apply(test {
+        apply(Test {
             funct3: 0b101,
             funct7: 0b0100000,
             rs1: 4,
@@ -185,7 +183,7 @@ mod r2r {
 
     #[test]
     fn sra_simple_case_shifts_left_only_top_5_bits() {
-        apply(test {
+        apply(Test {
             funct3: 0b101,
             funct7: 0b0100000,
             rs1: 4,
@@ -196,7 +194,7 @@ mod r2r {
 
     #[test]
     fn xor() {
-        apply(test {
+        apply(Test {
             funct3: 0b100,
             funct7: 0b0000000,
             rs1: 4,
@@ -207,7 +205,7 @@ mod r2r {
 
     #[test]
     fn or() {
-        apply(test {
+        apply(Test {
             funct3: 0b110,
             funct7: 0b0000000,
             rs1: 5,
@@ -218,7 +216,7 @@ mod r2r {
 
     #[test]
     fn and() {
-        apply(test {
+        apply(Test {
             funct3: 0b111,
             funct7: 0b0000000,
             rs1: 5,
