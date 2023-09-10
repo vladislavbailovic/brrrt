@@ -2,6 +2,8 @@ mod risc32i;
 use risc32i::{
     instr::builder::Builder, instr::format::Format, instr::operation::*, instr::part::Part, *,
 };
+mod memory;
+use memory::Memory;
 
 // tests
 #[cfg(test)]
