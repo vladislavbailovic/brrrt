@@ -5,6 +5,8 @@ use risc32i::{
 
 // tests
 #[cfg(test)]
+mod branches;
+#[cfg(test)]
 mod immediate_math;
 #[cfg(test)]
 mod jumps;
@@ -49,12 +51,87 @@ impl Cpu {
             Operation::ImmediateMath => self.immediate_math(i),
             Operation::JAL => self.unconditional_jump(i),
             Operation::JALR => self.unconditional_register_jump(i),
+            Operation::Branch => self.branch(i),
             _ => Err("unknown opcode"),
         };
         if result.is_ok() {
             self.register.increment(Register::PC);
         }
         result
+    }
+
+    fn branch(&mut self, i: Instruction) -> Result<(), &'static str> {
+        let im41 = i.value(Part::Imm41).expect("invalid immediate 4:1")
+            | i.value(Part::B11b).expect("invalid b11b");
+        let im12 = i.value(Part::B12b).expect("invalid b12b")
+            | i.value(Part::Imm105).expect("invalid immediate 10:5");
+        let address = (im12 << 5) | im41; // TODO: is this right?
+        // eprintln!("immediate 1: {:#034b} ({})", im41, im41);
+        // eprintln!("immediate 2: {:#034b} ({})", im12, im12);
+        // eprintln!("immediate R: {:#034b} ({})", address, address);
+        if address % 2 != 0 {
+            // TODO: is this right? The 12-bit B-immediate encodes
+            // signed offsets in multiples of 2
+            return Err("address not a multiple of 2");
+        }
+        let rs1: Register = i
+            .value(Part::Reg1)
+            .expect("invalid reg1")
+            .try_into()
+            .expect("invalid register");
+        let rs2: Register = i
+            .value(Part::Reg2)
+            .expect("invalid reg2")
+            .try_into()
+            .expect("invalid register");
+        let f3 = i.value(Part::Funct3).expect("invalid funct3");
+        let pc = self.register.get(Register::PC);
+
+        match f3 {
+            0b000 => {
+                // BEQ
+                if self.register.get(rs1) == self.register.get(rs2) {
+                    self.register.set(Register::PC, pc + address);
+                }
+                Ok(())
+            }
+            0b001 => {
+                // BNE
+                if self.register.get(rs1) != self.register.get(rs2) {
+                    self.register.set(Register::PC, pc + address);
+                }
+                Ok(())
+            }
+            0b100 => {
+                // BLT
+                if (self.register.get(rs1) as i32) < (self.register.get(rs2) as i32) {
+                    self.register.set(Register::PC, pc + address);
+                }
+                Ok(())
+            }
+            0b110 => {
+                // BLTU
+                if self.register.get(rs1) < self.register.get(rs2) {
+                    self.register.set(Register::PC, pc + address);
+                }
+                Ok(())
+            }
+            0b101 => {
+                // BGE
+                if (self.register.get(rs1) as i32) > (self.register.get(rs2) as i32) {
+                    self.register.set(Register::PC, pc + address);
+                }
+                Ok(())
+            }
+            0b111 => {
+                // BGEU
+                if self.register.get(rs1) > self.register.get(rs2) {
+                    self.register.set(Register::PC, pc + address);
+                }
+                Ok(())
+            }
+            _ => Err("invalid branch"),
+        }
     }
 
     fn unconditional_register_jump(&mut self, i: Instruction) -> Result<(), &'static str> {
