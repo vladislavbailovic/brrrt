@@ -1,10 +1,10 @@
 pub(crate) struct Memory {
-    data: Box<[u8]>
+    data: Box<[u8]>,
 }
 
 impl Memory {
     pub(crate) fn new(pool: u32) -> Self {
-        Self{
+        Self {
             data: vec![0; pool as usize].into_boxed_slice(),
         }
     }
@@ -32,8 +32,8 @@ impl Memory {
             return Err("invalid address");
         }
         let b1 = self.data[address] as u16;
-        let b2 = (self.data[address+1] as u16) << 8;
-        let res = (b1|b2);
+        let b2 = (self.data[address + 1] as u16) << 8;
+        let res = b1 | b2;
         // eprintln!("get m1: {:#018b} ({})", self.data[address], self.data[address]);
         // eprintln!("get m2: {:#018b} ({})", self.data[address+1], self.data[address+1]);
         // eprintln!("get 1: {:#018b} ({})", b1, b1);
@@ -44,14 +44,14 @@ impl Memory {
 
     pub(crate) fn set_hw_at(&mut self, address: u32, hw: u16) -> Result<(), &'static str> {
         let address = address as usize;
-        if address+1 >= self.data.len() {
+        if address + 1 >= self.data.len() {
             return Err("invalid address");
         }
         let b1 = hw as u8;
         let b2 = (hw >> 8) as u8;
-        let res = (b1 as u16|((b2 as u16) << 8));
-        self.data[address] = b1;
-        self.data[address+1] = b2;
+        self.data[address + 0] = b1;
+        self.data[address + 1] = b2;
+        // let res = b1 as u16 | ((b2 as u16) << 8);
         // eprintln!("set v: {:#018b} ({})", hw, hw);
         // eprintln!("set 1: {:#010b} ({})", b1, b1);
         // eprintln!("set 2: {:#010b} ({})", b2, b2);
@@ -66,12 +66,12 @@ impl Memory {
         if address + 3 >= self.data.len() {
             return Err("invalid address");
         }
-        let b1 = self.data[address] as u32;
-        let b2 = (self.data[address+1] as u32) << 8;
-        let b3 = (self.data[address+2] as u32) << 16;
-        let b4 = (self.data[address+3] as u32) << 24;
-        let res = (b1|b2|b3|b4);
-        // eprintln!("get m1: {:#010b} ({})", self.data[address], self.data[address]);
+        let b1 = (self.data[address + 0] as u32) << 0;
+        let b2 = (self.data[address + 1] as u32) << 8;
+        let b3 = (self.data[address + 2] as u32) << 16;
+        let b4 = (self.data[address + 3] as u32) << 24;
+        let res = b1 | b2 | b3 | b4;
+        // eprintln!("get m1: {:#010b} ({})", self.data[address+0], self.data[address]);
         // eprintln!("get m2: {:#010b} ({})", self.data[address+1], self.data[address+1]);
         // eprintln!("get m3: {:#010b} ({})", self.data[address+2], self.data[address+2]);
         // eprintln!("get m4: {:#010b} ({})", self.data[address+3], self.data[address+3]);
@@ -85,28 +85,25 @@ impl Memory {
 
     pub(crate) fn set_word_at(&mut self, address: u32, hw: u32) -> Result<(), &'static str> {
         let address = address as usize;
-        if address+3 >= self.data.len() {
+        if address + 3 >= self.data.len() {
             return Err("invalid address");
         }
-        let b1 = hw as u8;
+        let b1 = (hw >> 0) as u8;
         let b2 = (hw >> 8) as u8;
         let b3 = (hw >> 16) as u8;
         let b4 = (hw >> 24) as u8;
-        let res = (
-            b1 as u32
-            |((b2 as u32) << 8)
-            |((b3 as u32) << 16)
-            |((b4 as u32) << 24)
-        );
-        self.data[address] = b1;
-        self.data[address+1] = b2;
+        self.data[address + 0] = b1;
+        self.data[address + 1] = b2;
+        self.data[address + 2] = b3;
+        self.data[address + 3] = b4;
+        // let res = b1 as u32 | ((b2 as u32) << 8) | ((b3 as u32) << 16) | ((b4 as u32) << 24);
         // eprintln!("set v:  {:#018b} ({})", hw, hw);
         // eprintln!("set 1:  {:#010b} ({})", b1, b1);
         // eprintln!("set 2:  {:#010b} ({})", b2, b2);
         // eprintln!("set 3:  {:#010b} ({})", b3, b3);
         // eprintln!("set 4:  {:#010b} ({})", b4, b4);
         // eprintln!("set e:  {:#034b} ({})", res, res);
-        // eprintln!("set m1: {:#018b} ({})", self.data[address], self.data[address]);
+        // eprintln!("set m1: {:#018b} ({})", self.data[address+0], self.data[address]);
         // eprintln!("set m2: {:#018b} ({})", self.data[address+1], self.data[address+1]);
         // eprintln!("set m3: {:#018b} ({})", self.data[address+2], self.data[address+2]);
         // eprintln!("set m4: {:#018b} ({})", self.data[address+3], self.data[address+3]);
@@ -174,6 +171,13 @@ mod hw {
         let mut m = Memory::new(13);
         m.set_hw_at(11, 1312);
         assert_eq!(m.hw_at(11).unwrap(), 1312);
+    }
+
+    #[test]
+    fn happy_path_large_number() {
+        let mut m = Memory::new(13);
+        m.set_hw_at(11, 65535);
+        assert_eq!(m.hw_at(11).unwrap(), 65535);
     }
 }
 
