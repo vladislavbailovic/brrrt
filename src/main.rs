@@ -400,13 +400,16 @@ impl Cpu {
         match f3 {
             0b000 => {
                 // ADDI
-                self.register.set(rsd, self.register.get(rs1) + immediate);
+                self.register.set(
+                    rsd,
+                    (self.register.get(rs1) as i32 + sign_extend(immediate, 12)) as u32,
+                );
                 Ok(())
             }
             0b010 => {
                 // SLTI
                 let a = self.register.get(rs1) as i32;
-                let b = immediate as i32;
+                let b = sign_extend(immediate, 12);
                 let cmp = if a < b { 1 } else { 0 };
                 self.register.set(rsd, cmp);
                 Ok(())
@@ -432,19 +435,25 @@ impl Cpu {
             0b100 => {
                 // XORI
                 let reg = self.register.get(rs1);
-                let simm = 0xFFF - immediate as i32 - 1; // TODO: wat!
+                let simm = sign_extend(immediate, 12);
                 let result = if simm == -1 { !reg } else { reg ^ immediate };
                 self.register.set(rsd, result);
                 Ok(())
             }
             0b110 => {
                 // ORI
-                self.register.set(rsd, self.register.get(rs1) | immediate);
+                self.register.set(
+                    rsd,
+                    (self.register.get(rs1) as i32 | sign_extend(immediate, 12)) as u32,
+                );
                 Ok(())
             }
             0b111 => {
                 // XORI
-                self.register.set(rsd, self.register.get(rs1) & immediate);
+                self.register.set(
+                    rsd,
+                    (self.register.get(rs1) as i32 & sign_extend(immediate, 12)) as u32,
+                );
                 Ok(())
             }
             _ => Err("invalid immediate math operation"),

@@ -43,6 +43,17 @@ mod normal {
     }
 
     #[test]
+    fn addi_negative() {
+        let neg = -12;
+        apply(Test {
+            funct3: 0b000,
+            rs1: 13,
+            immediate: neg as u32,
+            expected: 1,
+        });
+    }
+
+    #[test]
     fn slti_reg_lt_immediate_unsigned() {
         apply(Test {
             funct3: 0b010,
