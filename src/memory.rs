@@ -1,3 +1,4 @@
+#[derive(Debug)]
 pub(crate) struct Memory {
     data: Box<[u8]>,
 }

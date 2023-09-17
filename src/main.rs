@@ -15,6 +15,8 @@ mod immediate_math;
 #[cfg(test)]
 mod jumps;
 #[cfg(test)]
+mod load;
+#[cfg(test)]
 mod math;
 
 fn main() -> Result<(), String> {
@@ -43,9 +45,18 @@ fn main() -> Result<(), String> {
     Ok(())
 }
 
+fn sign_extend(v: u32, width: u32) -> i32 {
+    let base: i32 = 2;
+    if v as i32 > base.pow(width - 1) {
+        return v as i32 - base.pow(width);
+    }
+    v as i32
+}
+
 #[derive(Default, Debug)]
 struct Cpu {
     register: Registers,
+    ram: Memory,
 }
 
 impl Cpu {
@@ -58,12 +69,85 @@ impl Cpu {
             Operation::JAL => self.unconditional_jump(i),
             Operation::JALR => self.unconditional_register_jump(i),
             Operation::Branch => self.branch(i),
+            Operation::Load => self.load(i),
             _ => Err("unknown opcode"),
         };
         if result.is_ok() {
             self.register.increment(Register::PC);
         }
         result
+    }
+
+    fn load(&mut self, i: Instruction) -> Result<(), &'static str> {
+        let rsd: Register = i
+            .value(Part::Dest)
+            .expect("invalid dest")
+            .try_into()
+            .expect("invalid register");
+        let rs1: Register = i
+            .value(Part::Reg1)
+            .expect("invalid reg1")
+            .try_into()
+            .expect("invalid register");
+        let f3 = i.value(Part::Funct3).expect("invalid funct3");
+        let immediate = i.value(Part::Imm110).expect("invalid imm110");
+        let address = self.register.get(rs1) as i32 + sign_extend(immediate, 12);
+
+        // eprintln!("rsd: {:?}", rsd);
+        // eprintln!("rs1: {:?}", rs1);
+        // eprintln!(" f3: {:#05b} ({})", f3, f3);
+        // eprintln!("imm: {:#014b} ({})", immediate, immediate);
+        // eprintln!("adr: {:#014b} ({})", address, address);
+
+        match f3 {
+            0b000 => {
+                // LB
+                let value = self
+                    .ram
+                    .byte_at(address.try_into().expect("invalid address"))
+                    .expect("invalid memory access");
+                self.register.set(rsd, sign_extend(value as u32, 8) as u32);
+                Ok(())
+            }
+            0b001 => {
+                // LH
+                let value = self
+                    .ram
+                    .hw_at(address.try_into().expect("invalid address"))
+                    .expect("invalid memory access");
+                self.register.set(rsd, sign_extend(value as u32, 16) as u32);
+                Ok(())
+            }
+            0b010 => {
+                // LW
+                self.register.set(
+                    rsd,
+                    self.ram
+                        .word_at(address.try_into().expect("invalid address"))
+                        .expect("invalid memory access") as u32,
+                );
+                Ok(())
+            }
+            0b100 => {
+                // LBU
+                let value = self
+                    .ram
+                    .byte_at(address.try_into().expect("invalid address"))
+                    .expect("invalid memory access");
+                self.register.set(rsd, value as u32);
+                Ok(())
+            }
+            0b101 => {
+                // LHU
+                let value = self
+                    .ram
+                    .hw_at(address.try_into().expect("invalid address"))
+                    .expect("invalid memory access");
+                self.register.set(rsd, value as u32);
+                Ok(())
+            }
+            _ => Err("unknown load instruction"),
+        }
     }
 
     fn add_upper_immediate(&mut self, i: Instruction) -> Result<(), &'static str> {
@@ -429,7 +513,7 @@ impl Registers {
 }
 
 #[repr(u32)]
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 #[allow(dead_code)]
 enum Register {
     X0,
