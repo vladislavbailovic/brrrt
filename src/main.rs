@@ -22,27 +22,58 @@ mod math;
 mod store;
 
 fn main() -> Result<(), String> {
-    let i = Instruction::parse(
-        Builder::opcode(Operation::ImmediateMath)
-            .pack(Part::Funct3, 0b101)
-            .pack(Part::Reg1, Register::X12 as u32)
-            .pack(Part::Imm110, 2)
-            .pack(Part::Dest, Register::X16 as u32)
+    let instructions = vec![
+        // X1 = 13
+        Builder::opcode(Operation::LUI)
+            .pack(Part::Dest, Register::X1 as u32)
+            .pack(Part::Imm3112, 13)
             .build(),
-    )?;
-    let num = i.get(Part::Reg1).unwrap();
-    let value = i.value(Part::Reg1).unwrap();
-    eprintln!("{:?}, reg1 value: {}, reg1 num: {}", i, value, num);
-    eprintln!("{:?}", Part::Null);
-    eprintln!("{:?}", Format::Jump);
-
-    eprintln!("Register X21:{:?}", Register::X21 as u32);
+        // X2 = X1 + 12
+        Builder::opcode(Operation::ImmediateMath)
+            .pack(Part::Funct3, 0b000)
+            .pack(Part::Imm110, 12)
+            .pack(Part::Reg1, Register::X1 as u32)
+            .pack(Part::Dest, Register::X2 as u32)
+            .build(),
+        // X2 => m@[X16]
+        Builder::opcode(Operation::Store)
+            .pack(Part::Imm110, 0)
+            .pack(Part::Reg1, Register::X16 as u32)
+            .pack(Part::Reg2, Register::X2 as u32)
+            .build(),
+    ];
 
     let mut cpu: Cpu = Default::default();
-    cpu.register.set(Register::X12, 4);
-    cpu.execute(i)?;
-    eprintln!("Result: {:?}", cpu.register.get(Register::X16));
-    eprintln!("{:?}", cpu);
+    for (n, x) in instructions.iter().enumerate() {
+        eprintln!("{n}: {:#034b}", x);
+        cpu.rom.set_word_at((n * 4) as u32, *x);
+    }
+
+    eprintln!("-------------------------------------");
+
+    for x in 0..10 {
+        let code = cpu
+            .rom
+            .word_at(cpu.register.get(Register::PC) * 4)
+            .expect("invalid memory access");
+
+        let inst = Instruction::parse(code).expect("should parse");
+        eprintln!("{x}: {:#034b}", code);
+        eprintln!("\t{:?}", inst);
+
+        if !cpu.execute(inst).is_ok() {
+            break;
+        }
+        if cpu.register.get(Register::PC) as usize == instructions.len() {
+            break;
+        }
+    }
+
+    eprintln!("-------------------------------------");
+    eprintln!("X01: {} (expected 13)", cpu.register.get(Register::X1));
+    eprintln!("X02: {} (expected 25)", cpu.register.get(Register::X2));
+    eprintln!("X16: {} (expected 0)", cpu.register.get(Register::X6));
+    eprintln!("M@0: {} (expected 25)", cpu.ram.byte_at(0).unwrap());
 
     Ok(())
 }
@@ -61,6 +92,7 @@ fn sign_extend(v: u32, width: u32) -> i32 {
 struct Cpu {
     register: Registers,
     ram: Memory,
+    rom: Memory,
 }
 
 impl Cpu {
@@ -367,6 +399,7 @@ impl Cpu {
 
         match f3 {
             0b000 => {
+                // ADDI
                 self.register.set(rsd, self.register.get(rs1) + immediate);
                 Ok(())
             }
@@ -397,6 +430,7 @@ impl Cpu {
                 Ok(())
             }
             0b100 => {
+                // XORI
                 let reg = self.register.get(rs1);
                 let simm = 0xFFF - immediate as i32 - 1; // TODO: wat!
                 let result = if simm == -1 { !reg } else { reg ^ immediate };
@@ -404,10 +438,12 @@ impl Cpu {
                 Ok(())
             }
             0b110 => {
+                // ORI
                 self.register.set(rsd, self.register.get(rs1) | immediate);
                 Ok(())
             }
             0b111 => {
+                // XORI
                 self.register.set(rsd, self.register.get(rs1) & immediate);
                 Ok(())
             }
