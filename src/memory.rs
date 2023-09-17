@@ -142,7 +142,7 @@ mod byte {
     #[test]
     fn happy_path() {
         let mut m = Memory::new(13);
-        m.set_byte_at(12, 161);
+        m.set_byte_at(12, 161).unwrap();
         assert_eq!(m.byte_at(12).unwrap(), 161);
     }
 }
@@ -170,14 +170,14 @@ mod hw {
     #[test]
     fn happy_path() {
         let mut m = Memory::new(13);
-        m.set_hw_at(11, 1312);
+        m.set_hw_at(11, 1312).unwrap();
         assert_eq!(m.hw_at(11).unwrap(), 1312);
     }
 
     #[test]
     fn happy_path_large_number() {
         let mut m = Memory::new(13);
-        m.set_hw_at(11, 65535);
+        m.set_hw_at(11, 65535).unwrap();
         assert_eq!(m.hw_at(11).unwrap(), 65535);
     }
 }
@@ -205,14 +205,14 @@ mod word {
     #[test]
     fn happy_path() {
         let mut m = Memory::new(13);
-        m.set_word_at(8, 1312);
+        m.set_word_at(8, 1312).unwrap();
         assert_eq!(m.word_at(8).unwrap(), 1312);
     }
 
     #[test]
     fn happy_path_large_number() {
         let mut m = Memory::new(13);
-        m.set_word_at(8, 4294967295);
+        m.set_word_at(8, 4294967295).unwrap();
         assert_eq!(m.word_at(8).unwrap(), 4294967295);
     }
 }
