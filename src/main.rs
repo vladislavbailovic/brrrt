@@ -18,6 +18,8 @@ mod jumps;
 mod load;
 #[cfg(test)]
 mod math;
+#[cfg(test)]
+mod store;
 
 fn main() -> Result<(), String> {
     let i = Instruction::parse(
@@ -47,10 +49,11 @@ fn main() -> Result<(), String> {
 
 fn sign_extend(v: u32, width: u32) -> i32 {
     let base: i32 = 2;
+    let mut res = v as i32;
     if v as i32 > base.pow(width - 1) {
-        return v as i32 - base.pow(width);
+        res = v as i32 - base.pow(width);
     }
-    v as i32
+    res
 }
 
 #[derive(Default, Debug)]
@@ -70,12 +73,65 @@ impl Cpu {
             Operation::JALR => self.unconditional_register_jump(i),
             Operation::Branch => self.branch(i),
             Operation::Load => self.load(i),
+            Operation::Store => self.store(i),
             _ => Err("unknown opcode"),
         };
         if result.is_ok() {
             self.register.increment(Register::PC);
         }
         result
+    }
+
+    fn store(&mut self, i: Instruction) -> Result<(), &'static str> {
+        let rs1: Register = i
+            .value(Part::Reg1)
+            .expect("invalid reg1")
+            .try_into()
+            .expect("invalid register");
+        let rs2: Register = i
+            .value(Part::Reg2)
+            .expect("invalid reg2")
+            .try_into()
+            .expect("invalid register");
+        let f3 = i.value(Part::Funct3).expect("invalid funct3");
+        let im40 = i.value(Part::Imm40).expect("invalid imm40");
+        let im115 = i.value(Part::Imm115).expect("invalid imm115");
+        let immediate = (im115 << 5) | im40; // https://stackoverflow.com/a/60239441
+        let address = self.register.get(rs1) as i32 + sign_extend(immediate, 12);
+
+        // eprintln!("rs1: {:?}", rs1);
+        // eprintln!("rs2: {:?}", rs2);
+        // eprintln!(" f3: {:#05b} ({})", f3, f3);
+        // eprintln!("im1: {:#014b} ({})", im115, im115);
+        // eprintln!("im4: {:#014b} ({})", im40, im40);
+        // eprintln!("imm: {:#014b} ({})", immediate, immediate);
+        // eprintln!("ext: {:#014b} ({})", sign_extend(immediate, 12), sign_extend(immediate, 12));
+        // eprintln!("adr: {:#014b} ({})", address, address);
+
+        match f3 {
+            0b000 => {
+                // SB
+                self.ram
+                    .set_byte_at(address as u32, self.register.get(rs2) as u8)
+                    .expect("invalid memory access");
+                Ok(())
+            }
+            0b001 => {
+                // SH
+                self.ram
+                    .set_hw_at(address as u32, self.register.get(rs2) as u16)
+                    .expect("invalid memory access");
+                Ok(())
+            }
+            0b010 => {
+                // SW
+                self.ram
+                    .set_word_at(address as u32, self.register.get(rs2))
+                    .expect("invalid memory access");
+                Ok(())
+            }
+            _ => Err("invalid store instruction"),
+        }
     }
 
     fn load(&mut self, i: Instruction) -> Result<(), &'static str> {
@@ -124,7 +180,7 @@ impl Cpu {
                     rsd,
                     self.ram
                         .word_at(address.try_into().expect("invalid address"))
-                        .expect("invalid memory access") as u32,
+                        .expect("invalid memory access"),
                 );
                 Ok(())
             }
