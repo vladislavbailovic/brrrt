@@ -21,8 +21,17 @@ mod math;
 #[cfg(test)]
 mod store;
 
-fn main() -> Result<(), String> {
-    let instructions = vec![
+// https://riscvasm.lucasteske.dev
+fn from_asm() -> Vec<u32> {
+    vec![
+        0x00d00093, // addi x1, x0, 13
+        0x00c08113, // addi x2, x1, 12
+        0x00282023, // sw x2, 0(x16)
+    ]
+}
+
+fn from_builder() -> Vec<u32> {
+    vec![
         // X1 = 13
         Builder::opcode(Operation::LUI)
             .pack(Part::Dest, Register::X1 as u32)
@@ -41,12 +50,18 @@ fn main() -> Result<(), String> {
             .pack(Part::Reg1, Register::X16 as u32)
             .pack(Part::Reg2, Register::X2 as u32)
             .build(),
-    ];
+    ]
+}
+
+fn main() -> Result<(), String> {
+    let instructions = from_asm();
 
     let mut cpu: Cpu = Default::default();
     for (n, x) in instructions.iter().enumerate() {
         eprintln!("{n}: {:#034b}", x);
-        cpu.rom.set_word_at((n * 4) as u32, *x);
+        cpu.rom
+            .set_word_at((n * 4) as u32, *x)
+            .expect("invalid memory access");
     }
 
     eprintln!("-------------------------------------");
@@ -61,7 +76,8 @@ fn main() -> Result<(), String> {
         eprintln!("{x}: {:#034b}", code);
         eprintln!("\t{:?}", inst);
 
-        if !cpu.execute(inst).is_ok() {
+        if cpu.execute(inst).is_err() {
+            eprintln!("Error!");
             break;
         }
         if cpu.register.get(Register::PC) as usize == instructions.len() {

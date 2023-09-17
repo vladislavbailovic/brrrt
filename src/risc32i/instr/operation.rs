@@ -13,7 +13,7 @@ pub(crate) enum Operation {
 
     Branch = 0b1100011,        // BEQ, BNE, BLT, BGE, BLTU, BGEU
     Load = 0b0000011,          // LB, LH, LW, LBU, LHU
-    Store = 0b1000011,         // SB, SH, SW
+    Store = 0b0100011,         // SB, SH, SW
     ImmediateMath = 0b0010011, // ADDI, SLTI, SLTIU, XORI, ORI, ANDI, SLLI, SLLI, SRLI, SRAI
     Math = 0b0110011,          // ADD, SUB, SLL, SLT, SLTU, XOR, SRL, SRA, OR, AND
     Call = 0b1110011,          // ECALL, EBREAK
