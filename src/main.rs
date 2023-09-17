@@ -48,6 +48,7 @@ fn main() -> Result<(), String> {
 }
 
 fn sign_extend(v: u32, width: u32) -> i32 {
+    assert!(width < 32);
     let base: i32 = 2;
     let mut res = v as i32;
     if v as i32 > base.pow(width - 1) {
@@ -649,5 +650,41 @@ impl TryFrom<u32> for Register {
 
             _ => Err("unknown register"),
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn extend_neg_one() {
+        let neg = -1;
+        assert_eq!(sign_extend(neg as u32, 8), neg);
+        assert_eq!(sign_extend(neg as u32, 12), neg);
+        assert_eq!(sign_extend(neg as u32, 16), neg);
+
+        assert_eq!(sign_extend(neg as u32, 16) as i8, neg as i8);
+
+        let neg = -13;
+        assert_eq!(sign_extend(neg as u32, 8), neg);
+        assert_eq!(sign_extend(neg as u32, 12), neg);
+        assert_eq!(sign_extend(neg as u32, 16), neg);
+
+        assert_eq!(sign_extend(neg as u32, 16) as i8, neg as i8);
+
+        let neg = -161;
+        assert_eq!(sign_extend(neg as u32, 8), neg);
+        assert_eq!(sign_extend(neg as u32, 12), neg);
+        assert_eq!(sign_extend(neg as u32, 16), neg);
+
+        assert_eq!(sign_extend(neg as u32, 16) as i16, neg as i16);
+
+        let neg = -1312;
+        assert_eq!(sign_extend(neg as u32, 8), neg);
+        assert_eq!(sign_extend(neg as u32, 12), neg);
+        assert_eq!(sign_extend(neg as u32, 16), neg);
+
+        assert_eq!(sign_extend(neg as u32, 16) as i16, neg as i16);
     }
 }
