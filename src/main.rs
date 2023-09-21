@@ -69,7 +69,7 @@ fn main() -> Result<(), String> {
     for x in 0..10 {
         let code = cpu
             .rom
-            .word_at(cpu.register.get(Register::PC) * 4)
+            .word_at(cpu.register.get(Register::PC))
             .expect("invalid memory access");
 
         let inst = Instruction::parse(code).expect("should parse");
@@ -80,7 +80,7 @@ fn main() -> Result<(), String> {
             eprintln!("Error!");
             break;
         }
-        if cpu.register.get(Register::PC) as usize == instructions.len() {
+        if (cpu.register.get(Register::PC) / 4) as usize == instructions.len() {
             break;
         }
     }
@@ -275,19 +275,28 @@ impl Cpu {
     }
 
     fn branch(&mut self, i: Instruction) -> Result<(), &'static str> {
-        let im41 = i.value(Part::Imm41).expect("invalid immediate 4:1")
-            | i.value(Part::B11b).expect("invalid b11b");
-        let im12 = i.value(Part::B12b).expect("invalid b12b")
-            | i.value(Part::Imm105).expect("invalid immediate 10:5");
-        let address = (im12 << 5) | im41; // TODO: is this right?
-                                          // eprintln!("immediate 1: {:#034b} ({})", im41, im41);
-                                          // eprintln!("immediate 2: {:#034b} ({})", im12, im12);
-                                          // eprintln!("immediate R: {:#034b} ({})", address, address);
-        if address % 2 != 0 {
-            // TODO: is this right? The 12-bit B-immediate encodes
-            // signed offsets in multiples of 2
-            return Err("address not a multiple of 2");
-        }
+        // let im41 = i.value(Part::Imm41).expect("invalid immediate 4:1")
+        //     | i.value(Part::B11b).expect("invalid b11b");
+        // let im12 = i.value(Part::B12b).expect("invalid b12b")
+        //     | i.value(Part::Imm105).expect("invalid immediate 10:5");
+        // let address = (im12 << 5) | im41; // TODO: is this right?
+        //                                   // eprintln!("immediate 1: {:#034b} ({})", im41, im41);
+        //                                   // eprintln!("immediate 2: {:#034b} ({})", im12, im12);
+        //                                   // eprintln!("immediate R: {:#034b} ({})", address, address);
+        // if address % 2 != 0 {
+        //     // TODO: is this right? The 12-bit B-immediate encodes
+        //     // signed offsets in multiples of 2
+        //     return Err("address not a multiple of 2");
+        // }
+        let immediate = (0
+            | (i.value(Part::B12b).expect("invalid B12b") << 11)
+            | (i.value(Part::B11b).expect("invalid B11b") << 10)
+            | (i.value(Part::Imm105).expect("invalid Imm105") << 4)
+            | (i.value(Part::Imm41).expect("invalid Imm41") << 0))
+            >> 1;
+        let address = immediate * 2;
+        eprintln!("im: {:#034b} {}", immediate, immediate);
+        eprintln!("ad: {:#034b} {}", address, address);
         let rs1: Register = i
             .value(Part::Reg1)
             .expect("invalid reg1")

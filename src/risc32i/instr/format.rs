@@ -89,4 +89,36 @@ mod test {
         let fmt = Format::Jump;
         assert_eq!(fmt.get().len(), 6);
     }
+
+    fn printp(wat: &str, num: u32) {
+        eprintln!("{:>6}: {:#034b} ({})", wat, num, num);
+    }
+
+    #[test]
+    fn branch() {
+        use crate::{Builder, Instruction, Operation};
+        let i = Instruction::parse(
+            Builder::opcode(Operation::Branch)
+                .pack(Part::B11b, 0)
+                .pack(Part::Imm41, 0b1000)
+                .pack(Part::Imm105, 0b000000)
+                .pack(Part::B12b, 0)
+                .build(),
+        )
+        .expect("should parse");
+        printp("B11b", i.value(Part::B11b).expect("invalid B11b"));
+        printp("Imm41", i.value(Part::Imm41).expect("invalid Imm41"));
+        printp("Imm105", i.value(Part::Imm105).expect("invalid Imm105"));
+        printp("B12b", i.value(Part::B12b).expect("invalid B12b"));
+
+        // B12b -> MSB
+        let value = 0
+            | (i.value(Part::B12b).expect("invalid B12b") << 11)
+            | (i.value(Part::B11b).expect("invalid B11b") << 10)
+            | (i.value(Part::Imm105).expect("invalid Imm105") << 4)
+            | (i.value(Part::Imm41).expect("invalid Imm41") << 0);
+        printp("value", value >> 1);
+
+        assert_eq!(value, 0b000000001000, "CS61C Su18 - Lecture 7, page 45");
+    }
 }
