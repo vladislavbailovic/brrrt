@@ -60,7 +60,7 @@ mod beq {
             left: 0,
             right: 0,
             address: 12,
-            expected: 16,
+            expected: 24,
         });
     }
 
@@ -71,7 +71,7 @@ mod beq {
             left: 161,
             right: 161,
             address: 160,
-            expected: 164,
+            expected: 320,
         });
     }
 
@@ -120,7 +120,7 @@ mod bne {
             left: 13,
             right: 12,
             address: 160,
-            expected: 164,
+            expected: 320,
         });
     }
 }
@@ -148,7 +148,7 @@ mod blt {
             left: neg as u32,
             right: 12,
             address: 12,
-            expected: 16,
+            expected: 24,
         });
     }
 }
@@ -234,7 +234,7 @@ mod bgeu {
             left: neg as u32,
             right: 12,
             address: 12,
-            expected: 16,
+            expected: 24,
         });
     }
 }

@@ -22,11 +22,42 @@ mod math;
 mod store;
 
 // https://riscvasm.lucasteske.dev
-fn from_asm() -> Vec<u32> {
+fn from_asm_simple() -> Vec<u32> {
     vec![
         0x00d00093, // addi x1, x0, 13
         0x00c08113, // addi x2, x1, 12
         0x00282023, // sw x2, 0(x16)
+    ]
+}
+
+fn from_asm_loop1() -> Vec<u32> {
+    /*
+    addi x1, x0, 12
+    loop: addi x2, x2, 1
+    bne x1, x2, loop
+    addi x1, x1, 1
+    add x2, x1, x2
+    sw x2, 0(x16)
+    */
+    vec![
+        0x00c00093, 0x00110113, 0xfe209ee3, 0x00108093, 0x00208133, 0x00282023,
+    ]
+}
+
+fn from_asm() -> Vec<u32> {
+    /*
+    addi x1, x0, 3
+    addi x1, x1, 5
+    addi x1, x1, 4
+    loop: addi x2, x2, 1
+    bne x1, x2, loop
+    addi x1, x1, 1
+    add x2, x1, x2
+    sw x2, 0(x16)
+    */
+    vec![
+        0x00300093, 0x00508093, 0x00408093, 0x00110113, 0xfe209ee3, 0x00108093, 0x00208133,
+        0x00282023,
     ]
 }
 
@@ -66,11 +97,10 @@ fn main() -> Result<(), String> {
 
     eprintln!("-------------------------------------");
 
-    for x in 0..10 {
-        let code = cpu
-            .rom
-            .word_at(cpu.register.get(Register::PC))
-            .expect("invalid memory access");
+    for x in 0..100 {
+        let pc = cpu.register.get(Register::PC);
+        let code = cpu.rom.word_at(pc).expect("invalid memory access");
+        eprintln!("PC: {}", pc);
 
         let inst = Instruction::parse(code).expect("should parse");
         eprintln!("{x}: {:#034b}", code);
@@ -88,7 +118,7 @@ fn main() -> Result<(), String> {
     eprintln!("-------------------------------------");
     eprintln!("X01: {} (expected 13)", cpu.register.get(Register::X1));
     eprintln!("X02: {} (expected 25)", cpu.register.get(Register::X2));
-    eprintln!("X16: {} (expected 0)", cpu.register.get(Register::X6));
+    eprintln!("X16: {} (expected 0)", cpu.register.get(Register::X16));
     eprintln!("M@0: {} (expected 25)", cpu.ram.byte_at(0).unwrap());
 
     Ok(())
@@ -275,28 +305,13 @@ impl Cpu {
     }
 
     fn branch(&mut self, i: Instruction) -> Result<(), &'static str> {
-        // let im41 = i.value(Part::Imm41).expect("invalid immediate 4:1")
-        //     | i.value(Part::B11b).expect("invalid b11b");
-        // let im12 = i.value(Part::B12b).expect("invalid b12b")
-        //     | i.value(Part::Imm105).expect("invalid immediate 10:5");
-        // let address = (im12 << 5) | im41; // TODO: is this right?
-        //                                   // eprintln!("immediate 1: {:#034b} ({})", im41, im41);
-        //                                   // eprintln!("immediate 2: {:#034b} ({})", im12, im12);
-        //                                   // eprintln!("immediate R: {:#034b} ({})", address, address);
-        // if address % 2 != 0 {
-        //     // TODO: is this right? The 12-bit B-immediate encodes
-        //     // signed offsets in multiples of 2
-        //     return Err("address not a multiple of 2");
-        // }
         let immediate = (0
             | (i.value(Part::B12b).expect("invalid B12b") << 11)
             | (i.value(Part::B11b).expect("invalid B11b") << 10)
             | (i.value(Part::Imm105).expect("invalid Imm105") << 4)
             | (i.value(Part::Imm41).expect("invalid Imm41") << 0))
             >> 1;
-        let address = immediate * 2;
-        eprintln!("im: {:#034b} {}", immediate, immediate);
-        eprintln!("ad: {:#034b} {}", address, address);
+        let address = bitops::sign_extend(immediate << 1, 12) * 2;
         let rs1: Register = i
             .value(Part::Reg1)
             .expect("invalid reg1")
@@ -308,48 +323,48 @@ impl Cpu {
             .try_into()
             .expect("invalid register");
         let f3 = i.value(Part::Funct3).expect("invalid funct3");
-        let pc = self.register.get(Register::PC);
+        let pc = (self.register.get(Register::PC) as i32) - REGISTER_INCREMENT as i32;
 
         match f3 {
             0b000 => {
                 // BEQ
                 if self.register.get(rs1) == self.register.get(rs2) {
-                    self.register.set(Register::PC, pc + address);
+                    self.register.set(Register::PC, (pc + address) as u32);
                 }
                 Ok(())
             }
             0b001 => {
                 // BNE
                 if self.register.get(rs1) != self.register.get(rs2) {
-                    self.register.set(Register::PC, pc + address);
+                    self.register.set(Register::PC, (pc + address) as u32);
                 }
                 Ok(())
             }
             0b100 => {
                 // BLT
                 if (self.register.get(rs1) as i32) < (self.register.get(rs2) as i32) {
-                    self.register.set(Register::PC, pc + address);
+                    self.register.set(Register::PC, (pc + address) as u32);
                 }
                 Ok(())
             }
             0b110 => {
                 // BLTU
                 if self.register.get(rs1) < self.register.get(rs2) {
-                    self.register.set(Register::PC, pc + address);
+                    self.register.set(Register::PC, (pc + address) as u32);
                 }
                 Ok(())
             }
             0b101 => {
                 // BGE
                 if (self.register.get(rs1) as i32) > (self.register.get(rs2) as i32) {
-                    self.register.set(Register::PC, pc + address);
+                    self.register.set(Register::PC, (pc + address) as u32);
                 }
                 Ok(())
             }
             0b111 => {
                 // BGEU
                 if self.register.get(rs1) > self.register.get(rs2) {
-                    self.register.set(Register::PC, pc + address);
+                    self.register.set(Register::PC, (pc + address) as u32);
                 }
                 Ok(())
             }
