@@ -44,7 +44,7 @@ fn from_asm_loop1() -> Vec<u32> {
     ]
 }
 
-fn from_asm() -> Vec<u32> {
+fn from_asm_loop2() -> Vec<u32> {
     /*
     addi x1, x0, 3
     addi x1, x1, 5
@@ -58,6 +58,26 @@ fn from_asm() -> Vec<u32> {
     vec![
         0x00300093, 0x00508093, 0x00408093, 0x00110113, 0xfe209ee3, 0x00108093, 0x00208133,
         0x00282023,
+    ]
+}
+
+fn from_asm() -> Vec<u32> {
+    /*
+    addi x1, x0, 3
+    addi x1, x1, 5
+    addi x1, x1, 4
+    loop:
+      addi x2, x2, 1
+      addi x2, x2, -1
+      addi x2, x2, 1
+      bne x1, x2, loop
+    addi x1, x1, 1
+    add x2, x1, x2
+    sw x2, 0(x16)
+    */
+    vec![
+        0x00300093, 0x00508093, 0x00408093, 0x00110113, 0xfff10113, 0x00110113, 0xfe209ae3,
+        0x00108093, 0x00208133, 0x00282023,
     ]
 }
 
