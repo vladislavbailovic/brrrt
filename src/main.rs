@@ -1,9 +1,11 @@
 mod risc32i;
 use risc32i::{
-    instr::builder::Builder, instr::format::Format, instr::operation::*, instr::part::Part, *,
+    instr::builder::Builder, instr::operation::*, instr::part::Part, *,
 };
 mod memory;
 use memory::Memory;
+
+pub mod bitops;
 
 // tests
 #[cfg(test)]
@@ -136,7 +138,7 @@ impl Cpu {
         let im40 = i.value(Part::Imm40).expect("invalid imm40");
         let im115 = i.value(Part::Imm115).expect("invalid imm115");
         let immediate = (im115 << 5) | im40; // https://stackoverflow.com/a/60239441
-        let address = self.register.get(rs1) as i32 + sign_extend(immediate, 12);
+        let address = self.register.get(rs1) as i32 + bitops::sign_extend(immediate, 12);
 
         // eprintln!("rs1: {:?}", rs1);
         // eprintln!("rs2: {:?}", rs2);
@@ -144,7 +146,7 @@ impl Cpu {
         // eprintln!("im1: {:#014b} ({})", im115, im115);
         // eprintln!("im4: {:#014b} ({})", im40, im40);
         // eprintln!("imm: {:#014b} ({})", immediate, immediate);
-        // eprintln!("ext: {:#014b} ({})", sign_extend(immediate, 12), sign_extend(immediate, 12));
+        // eprintln!("ext: {:#014b} ({})", bitops::sign_extend(immediate, 12), bitops::sign_extend(immediate, 12));
         // eprintln!("adr: {:#014b} ({})", address, address);
 
         match f3 {
@@ -186,7 +188,7 @@ impl Cpu {
             .expect("invalid register");
         let f3 = i.value(Part::Funct3).expect("invalid funct3");
         let immediate = i.value(Part::Imm110).expect("invalid imm110");
-        let address = self.register.get(rs1) as i32 + sign_extend(immediate, 12);
+        let address = self.register.get(rs1) as i32 + bitops::sign_extend(immediate, 12);
 
         // eprintln!("rsd: {:?}", rsd);
         // eprintln!("rs1: {:?}", rs1);
@@ -201,7 +203,7 @@ impl Cpu {
                     .ram
                     .byte_at(address.try_into().expect("invalid address"))
                     .expect("invalid memory access");
-                self.register.set(rsd, sign_extend(value as u32, 8) as u32);
+                self.register.set(rsd, bitops::sign_extend(value as u32, 8) as u32);
                 Ok(())
             }
             0b001 => {
@@ -210,7 +212,7 @@ impl Cpu {
                     .ram
                     .hw_at(address.try_into().expect("invalid address"))
                     .expect("invalid memory access");
-                self.register.set(rsd, sign_extend(value as u32, 16) as u32);
+                self.register.set(rsd, bitops::sign_extend(value as u32, 16) as u32);
                 Ok(())
             }
             0b010 => {
@@ -408,14 +410,14 @@ impl Cpu {
                 // ADDI
                 self.register.set(
                     rsd,
-                    (self.register.get(rs1) as i32 + sign_extend(immediate, 12)) as u32,
+                    (self.register.get(rs1) as i32 + bitops::sign_extend(immediate, 12)) as u32,
                 );
                 Ok(())
             }
             0b010 => {
                 // SLTI
                 let a = self.register.get(rs1) as i32;
-                let b = sign_extend(immediate, 12);
+                let b = bitops::sign_extend(immediate, 12);
                 let cmp = if a < b { 1 } else { 0 };
                 self.register.set(rsd, cmp);
                 Ok(())
@@ -441,7 +443,7 @@ impl Cpu {
             0b100 => {
                 // XORI
                 let reg = self.register.get(rs1);
-                let simm = sign_extend(immediate, 12);
+                let simm = bitops::sign_extend(immediate, 12);
                 let result = if simm == -1 { !reg } else { reg ^ immediate };
                 self.register.set(rsd, result);
                 Ok(())
@@ -450,7 +452,7 @@ impl Cpu {
                 // ORI
                 self.register.set(
                     rsd,
-                    (self.register.get(rs1) as i32 | sign_extend(immediate, 12)) as u32,
+                    (self.register.get(rs1) as i32 | bitops::sign_extend(immediate, 12)) as u32,
                 );
                 Ok(())
             }
@@ -458,7 +460,7 @@ impl Cpu {
                 // XORI
                 self.register.set(
                     rsd,
-                    (self.register.get(rs1) as i32 & sign_extend(immediate, 12)) as u32,
+                    (self.register.get(rs1) as i32 & bitops::sign_extend(immediate, 12)) as u32,
                 );
                 Ok(())
             }
@@ -701,93 +703,5 @@ impl TryFrom<u32> for Register {
 
             _ => Err("unknown register"),
         }
-    }
-}
-
-fn sign_extend(v: u32, width: u32) -> i32 {
-    assert!(width < 32);
-    let base: i32 = 2;
-    let mut res = v as i32;
-    if v as i32 > base.pow(width - 1) {
-        res = v as i32 - base.pow(width);
-    }
-    res
-}
-
-#[cfg(test)]
-mod test_sign_extend {
-    use super::*;
-
-    #[test]
-    fn extend_neg_one() {
-        let neg = -1;
-        assert_eq!(sign_extend(neg as u32, 8), neg);
-        assert_eq!(sign_extend(neg as u32, 12), neg);
-        assert_eq!(sign_extend(neg as u32, 16), neg);
-
-        assert_eq!(sign_extend(neg as u32, 16) as i8, neg as i8);
-
-        let neg = -13;
-        assert_eq!(sign_extend(neg as u32, 8), neg);
-        assert_eq!(sign_extend(neg as u32, 12), neg);
-        assert_eq!(sign_extend(neg as u32, 16), neg);
-
-        assert_eq!(sign_extend(neg as u32, 16) as i8, neg as i8);
-
-        let neg = -161;
-        assert_eq!(sign_extend(neg as u32, 8), neg);
-        assert_eq!(sign_extend(neg as u32, 12), neg);
-        assert_eq!(sign_extend(neg as u32, 16), neg);
-
-        assert_eq!(sign_extend(neg as u32, 16) as i16, neg as i16);
-
-        let neg = -1312;
-        assert_eq!(sign_extend(neg as u32, 8), neg);
-        assert_eq!(sign_extend(neg as u32, 12), neg);
-        assert_eq!(sign_extend(neg as u32, 16), neg);
-
-        assert_eq!(sign_extend(neg as u32, 16) as i16, neg as i16);
-    }
-}
-
-fn first_lsb_set(source: u32) -> i32 {
-    for x in 0..32 {
-        if source & (1 << x) > 0 {
-            return x;
-        }
-    }
-
-    return -1;
-}
-
-#[cfg(test)]
-mod test_first_lsb_set {
-    use super::*;
-
-    #[test]
-    fn lsb() {
-        let test = 0b0000_0000_0000_0000_0000_0000_0000_0000;
-        let result = first_lsb_set(test);
-        assert_eq!(result, -1);
-
-        let test = 0b0000_0000_0000_0000_0000_0000_0000_0001;
-        let result = first_lsb_set(test);
-        assert_eq!(result, 0);
-
-        let test = 0b0000_0000_0000_0000_0000_0000_0000_0010;
-        let result = first_lsb_set(test);
-        assert_eq!(result, 1);
-
-        let test = 0b0000_0000_0000_0000_0000_0000_0000_0100;
-        let result = first_lsb_set(test);
-        assert_eq!(result, 2);
-
-        let test = 0b0000_0000_0000_0000_0000_0000_0000_1000;
-        let result = first_lsb_set(test);
-        assert_eq!(result, 3);
-
-        let test = 0b1000_0000_0000_0000_0000_0000_0000_1000;
-        let result = first_lsb_set(test);
-        assert_eq!(result, 3);
     }
 }

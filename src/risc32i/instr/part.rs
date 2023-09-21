@@ -1,3 +1,5 @@
+use crate::bitops;
+
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub(crate) enum Part {
     Null,
@@ -72,16 +74,11 @@ impl Part {
     }
 
     pub(crate) fn shift(&self) -> u32 {
-        match self {
-            Self::Null | Self::Opcode => 0,
-            Self::Dest | Self::Imm40 | Self::B11b => 7,
-            Self::Imm41 => 8,
-            Self::Funct3 | Self::Imm3112 | Self::Imm1912 => 12,
-            Self::Reg1 => 15,
-            Self::Reg2 | Self::Imm110 | Self::B11j => 20,
-            Self::Imm101 => 21,
-            Self::Funct7 | Self::Imm115 | Self::Imm105 => 25,
-            Self::B12b | Self::B20j => 31,
+        let shift = bitops::first_lsb_set(self.mask());
+        if shift >= 0 {
+            shift as u32
+        } else {
+            0
         }
     }
 
