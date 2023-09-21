@@ -21,7 +21,7 @@ mod immediate {
         assert_eq!(cpu.register.get(Register::PC), 0);
         cpu.execute(i).expect("should execute");
 
-        assert_eq!(cpu.register.get(Register::X1), 1);
+        assert_eq!(cpu.register.get(Register::X1), 4);
         assert_eq!(cpu.register.get(Register::PC), 13);
     }
 
@@ -43,7 +43,7 @@ mod immediate {
         cpu.register.set(Register::PC, 12);
         cpu.execute(i).expect("should execute");
 
-        assert_eq!(cpu.register.get(Register::X1), 13);
+        assert_eq!(cpu.register.get(Register::X1), 16);
         assert_eq!(cpu.register.get(Register::PC), 25);
     }
 
@@ -92,7 +92,7 @@ mod register {
         assert_eq!(cpu.register.get(Register::PC), 0);
         cpu.execute(i).expect("should execute");
 
-        assert_eq!(cpu.register.get(Register::X1), 1);
+        assert_eq!(cpu.register.get(Register::X1), 4);
         assert_eq!(cpu.register.get(Register::PC), 13);
     }
 
@@ -113,7 +113,7 @@ mod register {
         cpu.register.set(Register::PC, 100);
         cpu.execute(i).expect("should execute");
 
-        assert_eq!(cpu.register.get(Register::X1), 101);
+        assert_eq!(cpu.register.get(Register::X1), 104);
         assert_eq!(cpu.register.get(Register::PC), 13);
     }
 }

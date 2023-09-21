@@ -33,7 +33,7 @@ mod r2r {
         assert_eq!(cpu.register.get(Register::X12), t.rs1);
         assert_eq!(cpu.register.get(Register::X13), t.rs2);
         assert_eq!(cpu.register.get(Register::X16), t.expected);
-        assert_eq!(cpu.register.get(Register::PC), 1);
+        assert_eq!(cpu.register.get(Register::PC), 4);
     }
 
     #[test]

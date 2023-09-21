@@ -79,7 +79,7 @@ mod beq {
             left: 0,
             right: 0,
             address: 12,
-            expected: 13,
+            expected: 16,
         });
     }
 
@@ -101,7 +101,7 @@ mod beq {
             left: 161,
             right: 161,
             address: 160,
-            expected: 161,
+            expected: 164,
         });
     }
 
@@ -112,7 +112,7 @@ mod beq {
             left: 13,
             right: 12,
             address: 160,
-            expected: 1,
+            expected: 4,
         });
     }
 }
@@ -128,7 +128,7 @@ mod bne {
             left: 0,
             right: 0,
             address: 12,
-            expected: 1,
+            expected: 4,
         });
     }
 
@@ -150,7 +150,7 @@ mod bne {
             left: 161,
             right: 161,
             address: 160,
-            expected: 1,
+            expected: 4,
         });
     }
 
@@ -161,7 +161,7 @@ mod bne {
             left: 13,
             right: 12,
             address: 160,
-            expected: 161,
+            expected: 164,
         });
     }
 }
@@ -177,7 +177,7 @@ mod blt {
             left: 0,
             right: 0,
             address: 12,
-            expected: 1,
+            expected: 4,
         });
     }
 
@@ -200,7 +200,7 @@ mod blt {
             left: neg as u32,
             right: 12,
             address: 12,
-            expected: 13,
+            expected: 16,
         });
     }
 }
@@ -216,7 +216,7 @@ mod bltu {
             left: 0,
             right: 0,
             address: 12,
-            expected: 1,
+            expected: 4,
         });
     }
 
@@ -239,7 +239,7 @@ mod bltu {
             left: neg as u32,
             right: 12,
             address: 12,
-            expected: 1,
+            expected: 4,
         });
     }
 }
@@ -257,7 +257,7 @@ mod bge {
             left: 0,
             right: 0,
             address: 12,
-            expected: 1,
+            expected: 4,
         });
     }
 
@@ -280,7 +280,7 @@ mod bge {
             left: neg as u32,
             right: 12,
             address: 12,
-            expected: 1,
+            expected: 4,
         });
     }
 }
@@ -296,7 +296,7 @@ mod bgeu {
             left: 0,
             right: 0,
             address: 12,
-            expected: 1,
+            expected: 4,
         });
     }
 
@@ -319,7 +319,7 @@ mod bgeu {
             left: neg as u32,
             right: 12,
             address: 12,
-            expected: 13,
+            expected: 16,
         });
     }
 }

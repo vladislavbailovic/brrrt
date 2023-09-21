@@ -27,7 +27,7 @@ mod byte {
 
         assert_eq!(cpu.register.get(Register::X13), expected);
         assert_eq!(cpu.register.get(Register::X12), 1);
-        assert_eq!(cpu.register.get(Register::PC), 1);
+        assert_eq!(cpu.register.get(Register::PC), 4);
         assert_eq!(cpu.ram.byte_at(14).expect("memory access") as u32, expected);
     }
 
@@ -55,7 +55,7 @@ mod byte {
 
         assert_eq!(cpu.register.get(Register::X13), expected);
         assert_eq!(cpu.register.get(Register::X12), 161 + 32);
-        assert_eq!(cpu.register.get(Register::PC), 1);
+        assert_eq!(cpu.register.get(Register::PC), 4);
         assert_eq!(
             cpu.ram.byte_at(161).expect("memory access") as u32,
             expected
@@ -92,7 +92,7 @@ mod half_word {
 
         assert_eq!(cpu.register.get(Register::X13), expected);
         assert_eq!(cpu.register.get(Register::X12), 1);
-        assert_eq!(cpu.register.get(Register::PC), 1);
+        assert_eq!(cpu.register.get(Register::PC), 4);
         assert_eq!(cpu.ram.hw_at(14).expect("memory access") as u32, expected);
     }
 
@@ -120,7 +120,7 @@ mod half_word {
 
         assert_eq!(cpu.register.get(Register::X13), expected);
         assert_eq!(cpu.register.get(Register::X12), 161 + 32);
-        assert_eq!(cpu.register.get(Register::PC), 1);
+        assert_eq!(cpu.register.get(Register::PC), 4);
         assert_eq!(cpu.ram.hw_at(161).expect("memory access") as u32, expected);
     }
 }
@@ -154,7 +154,7 @@ mod word {
 
         assert_eq!(cpu.register.get(Register::X13), expected);
         assert_eq!(cpu.register.get(Register::X12), 1);
-        assert_eq!(cpu.register.get(Register::PC), 1);
+        assert_eq!(cpu.register.get(Register::PC), 4);
         assert_eq!(cpu.ram.word_at(14).expect("memory access") as u32, expected);
     }
 
@@ -182,7 +182,7 @@ mod word {
 
         assert_eq!(cpu.register.get(Register::X13), expected);
         assert_eq!(cpu.register.get(Register::X12), 161 + 32);
-        assert_eq!(cpu.register.get(Register::PC), 1);
+        assert_eq!(cpu.register.get(Register::PC), 4);
         assert_eq!(
             cpu.ram.word_at(161).expect("memory access") as u32,
             expected

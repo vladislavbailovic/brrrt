@@ -29,7 +29,7 @@ mod byte {
 
         assert_eq!(cpu.register.get(Register::X13), 1);
         assert_eq!(cpu.register.get(Register::X12), neg as u32);
-        assert_eq!(cpu.register.get(Register::PC), 1);
+        assert_eq!(cpu.register.get(Register::PC), 4);
         assert_eq!(cpu.ram.byte_at(162).expect("memory access"), neg as u8);
     }
 
@@ -60,7 +60,7 @@ mod byte {
 
         assert_eq!(cpu.register.get(Register::X13), 161 + 32);
         assert_eq!(cpu.register.get(Register::X12), negval as u32);
-        assert_eq!(cpu.register.get(Register::PC), 1);
+        assert_eq!(cpu.register.get(Register::PC), 4);
         assert_eq!(cpu.ram.byte_at(161).expect("memory access"), negval as u8);
     }
 }
@@ -96,7 +96,7 @@ mod half_word {
 
         assert_eq!(cpu.register.get(Register::X13), 1);
         assert_eq!(cpu.register.get(Register::X12), negval as u32);
-        assert_eq!(cpu.register.get(Register::PC), 1);
+        assert_eq!(cpu.register.get(Register::PC), 4);
         assert_eq!(cpu.ram.hw_at(162).expect("memory access"), negval as u16);
     }
 
@@ -127,7 +127,7 @@ mod half_word {
 
         assert_eq!(cpu.register.get(Register::X13), 161 + 32);
         assert_eq!(cpu.register.get(Register::X12), negval as u32);
-        assert_eq!(cpu.register.get(Register::PC), 1);
+        assert_eq!(cpu.register.get(Register::PC), 4);
         assert_eq!(cpu.ram.hw_at(161).expect("memory access"), negval as u16);
     }
 }
@@ -159,7 +159,7 @@ mod word {
 
         assert_eq!(cpu.register.get(Register::X13), 1);
         assert_eq!(cpu.register.get(Register::X12), 1611312);
-        assert_eq!(cpu.register.get(Register::PC), 1);
+        assert_eq!(cpu.register.get(Register::PC), 4);
         assert_eq!(cpu.ram.word_at(162).expect("memory access"), 1611312);
     }
 
@@ -186,7 +186,7 @@ mod word {
 
         assert_eq!(cpu.register.get(Register::X13), 161 + 32);
         assert_eq!(cpu.register.get(Register::X12), 1611312);
-        assert_eq!(cpu.register.get(Register::PC), 1);
+        assert_eq!(cpu.register.get(Register::PC), 4);
         assert_eq!(cpu.ram.word_at(161).expect("memory access"), 1611312);
     }
 }
@@ -218,7 +218,7 @@ mod byte_unsigned {
 
         assert_eq!(cpu.register.get(Register::X13), 1);
         assert_eq!(cpu.register.get(Register::X12), 6);
-        assert_eq!(cpu.register.get(Register::PC), 1);
+        assert_eq!(cpu.register.get(Register::PC), 4);
         assert_eq!(cpu.ram.byte_at(162).expect("memory access"), 6);
     }
 
@@ -245,7 +245,7 @@ mod byte_unsigned {
 
         assert_eq!(cpu.register.get(Register::X13), 161 + 32);
         assert_eq!(cpu.register.get(Register::X12), 6);
-        assert_eq!(cpu.register.get(Register::PC), 1);
+        assert_eq!(cpu.register.get(Register::PC), 4);
         assert_eq!(cpu.ram.byte_at(161).expect("memory access"), 6);
     }
 }
@@ -277,7 +277,7 @@ mod half_word_unsigned {
 
         assert_eq!(cpu.register.get(Register::X13), 1);
         assert_eq!(cpu.register.get(Register::X12), 1312);
-        assert_eq!(cpu.register.get(Register::PC), 1);
+        assert_eq!(cpu.register.get(Register::PC), 4);
         assert_eq!(cpu.ram.hw_at(162).expect("memory access"), 1312);
     }
 
@@ -304,7 +304,7 @@ mod half_word_unsigned {
 
         assert_eq!(cpu.register.get(Register::X13), 161 + 32);
         assert_eq!(cpu.register.get(Register::X12), 1312);
-        assert_eq!(cpu.register.get(Register::PC), 1);
+        assert_eq!(cpu.register.get(Register::PC), 4);
         assert_eq!(cpu.ram.hw_at(161).expect("memory access"), 1312);
     }
 }

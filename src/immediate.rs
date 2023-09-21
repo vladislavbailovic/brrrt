@@ -19,7 +19,7 @@ mod lui {
         cpu.execute(i).expect("should execute");
 
         assert_eq!(cpu.register.get(Register::X1), 1312);
-        assert_eq!(cpu.register.get(Register::PC), 1);
+        assert_eq!(cpu.register.get(Register::PC), 4);
     }
 }
 
@@ -44,7 +44,7 @@ mod auipc {
         cpu.execute(i).expect("should execute");
 
         assert_eq!(cpu.register.get(Register::X1), 1312);
-        assert_eq!(cpu.register.get(Register::PC), 1);
+        assert_eq!(cpu.register.get(Register::PC), 4);
     }
 
     #[test]
@@ -63,6 +63,6 @@ mod auipc {
         cpu.execute(i).expect("should execute");
 
         assert_eq!(cpu.register.get(Register::X1), 25);
-        assert_eq!(cpu.register.get(Register::PC), 13);
+        assert_eq!(cpu.register.get(Register::PC), 16);
     }
 }

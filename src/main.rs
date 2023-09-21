@@ -1,7 +1,5 @@
 mod risc32i;
-use risc32i::{
-    instr::builder::Builder, instr::operation::*, instr::part::Part, *,
-};
+use risc32i::{instr::builder::Builder, instr::operation::*, instr::part::Part, *};
 mod memory;
 use memory::Memory;
 
@@ -203,7 +201,8 @@ impl Cpu {
                     .ram
                     .byte_at(address.try_into().expect("invalid address"))
                     .expect("invalid memory access");
-                self.register.set(rsd, bitops::sign_extend(value as u32, 8) as u32);
+                self.register
+                    .set(rsd, bitops::sign_extend(value as u32, 8) as u32);
                 Ok(())
             }
             0b001 => {
@@ -212,7 +211,8 @@ impl Cpu {
                     .ram
                     .hw_at(address.try_into().expect("invalid address"))
                     .expect("invalid memory access");
-                self.register.set(rsd, bitops::sign_extend(value as u32, 16) as u32);
+                self.register
+                    .set(rsd, bitops::sign_extend(value as u32, 16) as u32);
                 Ok(())
             }
             0b010 => {
@@ -593,7 +593,7 @@ impl Cpu {
     }
 }
 
-const REGISTER_INCREMENT: u32 = 1; // TODO: or 4?
+const REGISTER_INCREMENT: u32 = 4;
 
 #[derive(Debug)]
 struct Registers {
@@ -618,7 +618,7 @@ impl Registers {
     }
 
     fn increment(&mut self, key: Register) {
-        self.data[key as usize] += REGISTER_INCREMENT; // TODO: 4 vs 1? For PC only?
+        self.data[key as usize] += REGISTER_INCREMENT; // TODO: For PC only?
     }
 }
 
