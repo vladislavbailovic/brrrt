@@ -1,10 +1,4 @@
-use brrrt::{
-    risc32i::{
-        instr::builder::Builder, instr::instruction::Instruction, instr::operation::*,
-        instr::part::Part, *,
-    },
-    Cpu, Memory, Register, Registers,
-};
+use brrrt::{risc32i::instr::instruction::Instruction, Cpu, Register};
 
 // https://riscvasm.lucasteske.dev
 fn from_asm() -> Vec<u32> {

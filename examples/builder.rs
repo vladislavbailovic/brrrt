@@ -1,9 +1,9 @@
 use brrrt::{
     risc32i::{
         instr::builder::Builder, instr::instruction::Instruction, instr::operation::*,
-        instr::part::Part, *,
+        instr::part::Part,
     },
-    Cpu, Memory, Register, Registers,
+    Cpu, Register,
 };
 
 fn from_builder() -> Vec<u32> {
