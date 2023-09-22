@@ -426,7 +426,6 @@ impl Cpu {
         let rs1: Register = i.value(Part::Reg1).unwrap().try_into().unwrap();
         let rs2: Register = i.value(Part::Reg2).unwrap().try_into().unwrap();
         let rsd: Register = i.value(Part::Dest).unwrap().try_into().unwrap();
-        eprintln!("values from {:?} <op> {:?} go to {:?}", rs1, rs2, rsd);
 
         match (f3, f7) {
             (0b000, 0b0000000) => {

@@ -43,7 +43,7 @@ fn main() -> Result<(), String> {
     for x in 0..100 {
         let pc = cpu.register.get(Register::PC);
         let code = cpu.rom.word_at(pc).expect("invalid memory access");
-        eprintln!("PC: {}", pc);
+        eprintln!("iteration {} :: PC: {}", x, pc);
 
         let inst = Instruction::parse(code).expect("should parse");
         eprintln!("{x}: {:#034b}", code);
