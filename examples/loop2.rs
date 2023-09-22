@@ -24,7 +24,6 @@ fn from_asm() -> Vec<u32> {
     ]
 }
 
-
 fn main() -> Result<(), String> {
     let instructions = from_asm();
 

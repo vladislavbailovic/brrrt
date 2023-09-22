@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod byte {
+    use crate::risc32i::{instr::builder::Builder, instr::part::Part};
     use crate::*;
-    use brrrt::risc32i::{instr::builder::Builder, instr::part::Part};
 
     #[test]
     fn store() {
@@ -65,8 +65,8 @@ mod byte {
 
 #[cfg(test)]
 mod half_word {
+    use crate::risc32i::{instr::builder::Builder, instr::part::Part};
     use crate::*;
-    use brrrt::risc32i::{instr::builder::Builder, instr::part::Part};
 
     #[test]
     fn store() {
@@ -127,8 +127,8 @@ mod half_word {
 
 #[cfg(test)]
 mod word {
+    use crate::risc32i::{instr::builder::Builder, instr::part::Part};
     use crate::*;
-    use brrrt::risc32i::{instr::builder::Builder, instr::part::Part};
 
     #[test]
     fn store() {

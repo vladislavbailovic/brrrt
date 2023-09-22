@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod r2r {
+    use crate::risc32i::{instr::builder::Builder, instr::part::Part};
     use crate::*;
-    use brrrt::risc32i::{instr::builder::Builder, instr::part::Part};
 
     struct Test {
         funct3: u32,

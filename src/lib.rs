@@ -2,6 +2,22 @@ pub mod bitops;
 pub mod memory;
 pub mod risc32i;
 
+// tests
+#[cfg(test)]
+mod branches;
+#[cfg(test)]
+mod immediate;
+#[cfg(test)]
+mod immediate_math;
+#[cfg(test)]
+mod jumps;
+#[cfg(test)]
+mod load;
+#[cfg(test)]
+mod math;
+#[cfg(test)]
+mod store;
+
 pub use memory::Memory;
 use risc32i::{instr::instruction::Instruction, instr::operation::Operation, instr::part::Part};
 

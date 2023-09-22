@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod normal {
+    use crate::risc32i::{instr::builder::Builder, instr::part::Part};
     use crate::*;
-    use brrrt::risc32i::{instr::builder::Builder, instr::part::Part};
 
     struct Test {
         funct3: u32,
@@ -176,8 +176,8 @@ mod normal {
 
 #[cfg(test)]
 mod shift {
+    use crate::risc32i::{instr::builder::Builder, instr::part::Part};
     use crate::*;
-    use brrrt::risc32i::{instr::builder::Builder, instr::part::Part};
 
     struct Test {
         funct3: u32,

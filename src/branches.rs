@@ -1,7 +1,7 @@
 #[cfg(test)]
-use crate::*;
+use crate::risc32i::{instr::builder::Builder, instr::part::Part};
 #[cfg(test)]
-use brrrt::risc32i::{instr::builder::Builder, instr::part::Part};
+use crate::*;
 
 #[cfg(test)]
 struct Test {
