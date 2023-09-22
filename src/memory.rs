@@ -1,5 +1,5 @@
 #[derive(Debug)]
-pub(crate) struct Memory {
+pub struct Memory {
     data: Box<[u8]>,
 }
 
@@ -10,7 +10,7 @@ impl Memory {
         }
     }
 
-    pub(crate) fn byte_at(&self, address: u32) -> Result<u8, &'static str> {
+    pub fn byte_at(&self, address: u32) -> Result<u8, &'static str> {
         let address = address as usize;
         if address >= self.data.len() {
             return Err("invalid address");
@@ -18,7 +18,7 @@ impl Memory {
         Ok(self.data[address])
     }
 
-    pub(crate) fn set_byte_at(&mut self, address: u32, b: u8) -> Result<(), &'static str> {
+    pub fn set_byte_at(&mut self, address: u32, b: u8) -> Result<(), &'static str> {
         let address = address as usize;
         if address >= self.data.len() {
             return Err("invalid address");
@@ -27,7 +27,7 @@ impl Memory {
         Ok(())
     }
 
-    pub(crate) fn hw_at(&self, address: u32) -> Result<u16, &'static str> {
+    pub fn hw_at(&self, address: u32) -> Result<u16, &'static str> {
         let address = address as usize;
         if address + 1 >= self.data.len() {
             return Err("invalid address");
@@ -43,7 +43,7 @@ impl Memory {
         Ok(res)
     }
 
-    pub(crate) fn set_hw_at(&mut self, address: u32, hw: u16) -> Result<(), &'static str> {
+    pub fn set_hw_at(&mut self, address: u32, hw: u16) -> Result<(), &'static str> {
         let address = address as usize;
         if address + 1 >= self.data.len() {
             return Err("invalid address");
@@ -62,7 +62,7 @@ impl Memory {
         Ok(())
     }
 
-    pub(crate) fn word_at(&self, address: u32) -> Result<u32, &'static str> {
+    pub fn word_at(&self, address: u32) -> Result<u32, &'static str> {
         let address = address as usize;
         if address + 3 >= self.data.len() {
             return Err("invalid address");
@@ -84,7 +84,7 @@ impl Memory {
         Ok(res)
     }
 
-    pub(crate) fn set_word_at(&mut self, address: u32, hw: u32) -> Result<(), &'static str> {
+    pub fn set_word_at(&mut self, address: u32, hw: u32) -> Result<(), &'static str> {
         let address = address as usize;
         if address + 3 >= self.data.len() {
             return Err("invalid address");

@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod immediate {
     use crate::*;
-    use risc32i::{instr::builder::Builder, instr::part::Part};
+    use brrrt::risc32i::{instr::builder::Builder, instr::part::Part};
 
     #[test]
     fn jal() {
@@ -73,7 +73,7 @@ mod immediate {
 #[cfg(test)]
 mod register {
     use crate::*;
-    use risc32i::{instr::builder::Builder, instr::part::Part};
+    use brrrt::risc32i::{instr::builder::Builder, instr::part::Part};
 
     #[test]
     fn jalr() {

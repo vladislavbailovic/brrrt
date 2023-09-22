@@ -96,7 +96,7 @@ mod test {
 
     #[test]
     fn branch() {
-        use crate::{Builder, Instruction, Operation};
+        use super::super::{builder::Builder, instruction::Instruction, operation::Operation};
         let i = Instruction::parse(
             Builder::opcode(Operation::Branch)
                 .pack(Part::B11b, 0)

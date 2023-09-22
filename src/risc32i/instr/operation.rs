@@ -4,7 +4,7 @@ use super::part::Part;
 #[repr(u32)]
 #[derive(Debug, PartialEq, Copy, Clone)]
 #[allow(clippy::upper_case_acronyms)]
-pub(crate) enum Operation {
+pub enum Operation {
     LUI = 0b0110111,
     AUIPC = 0b0010111,
     JAL = 0b1101111,

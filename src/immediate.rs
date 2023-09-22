@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod lui {
     use crate::*;
-    use risc32i::{instr::builder::Builder, instr::part::Part};
+    use brrrt::risc32i::{instr::builder::Builder, instr::part::Part};
 
     #[test]
     fn load_simple() {
@@ -26,7 +26,7 @@ mod lui {
 #[cfg(test)]
 mod auipc {
     use crate::*;
-    use risc32i::{instr::builder::Builder, instr::part::Part};
+    use brrrt::risc32i::{instr::builder::Builder, instr::part::Part};
 
     #[test]
     fn load_pc0() {

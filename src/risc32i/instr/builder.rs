@@ -1,7 +1,7 @@
 use super::operation::Operation;
 use super::part::Part;
 
-pub(crate) struct Builder {
+pub struct Builder {
     raw: u32,
 }
 
@@ -10,11 +10,11 @@ impl Builder {
         Self { raw }
     }
 
-    pub(crate) fn opcode(code: Operation) -> Self {
+    pub fn opcode(code: Operation) -> Self {
         Self::new(code as u32 | Part::Opcode as u32)
     }
 
-    pub(crate) fn pack(&self, part: Part, data: u32) -> Self {
+    pub fn pack(&self, part: Part, data: u32) -> Self {
         let packed = data << part.shift();
         let masked = packed & part.mask();
         // eprintln!("data  : {:#034b}", data);

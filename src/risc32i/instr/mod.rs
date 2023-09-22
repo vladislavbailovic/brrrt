@@ -4,5 +4,4 @@ pub mod operation;
 
 pub mod part;
 
-mod instruction;
-pub use instruction::*;
+pub mod instruction;

@@ -1,7 +1,7 @@
 use crate::bitops;
 
 #[derive(Debug, PartialEq, Copy, Clone)]
-pub(crate) enum Part {
+pub enum Part {
     Null,
 
     Opcode,
