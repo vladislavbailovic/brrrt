@@ -5,7 +5,7 @@ pub fn first_lsb_set(source: u32) -> i32 {
         }
     }
 
-    return -1;
+    -1
 }
 
 #[cfg(test)]

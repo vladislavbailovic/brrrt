@@ -1,4 +1,4 @@
-use brrrt::{risc32i::instr::instruction::Instruction, Cpu, Register};
+use brrrt::{debug, risc32i::instr::instruction::Instruction, Cpu, Register};
 
 // https://riscvasm.lucasteske.dev
 fn from_asm() -> Vec<u32> {
@@ -20,7 +20,7 @@ fn main() -> Result<(), String> {
 
     let mut cpu: Cpu = Default::default();
     for (n, x) in instructions.iter().enumerate() {
-        eprintln!("{n}: {:#034b}", x);
+        eprintln!("{n}: {}", debug::binary(*x, 32));
         cpu.rom
             .set_word_at((n * 4) as u32, *x)
             .expect("invalid memory access");
@@ -34,7 +34,7 @@ fn main() -> Result<(), String> {
         eprintln!("iteration {} :: PC: {}", x, pc);
 
         let inst = Instruction::parse(code).expect("should parse");
-        eprintln!("{x}: {:#034b}", code);
+        eprintln!("{x}: {}", debug::binary(code, 32));
         eprintln!("\t{:?}", inst);
 
         if cpu.execute(inst).is_err() {
@@ -44,6 +44,7 @@ fn main() -> Result<(), String> {
         if (cpu.register.get(Register::PC) / 4) as usize == instructions.len() {
             break;
         }
+        eprintln!("");
     }
 
     eprintln!("-------------------------------------");

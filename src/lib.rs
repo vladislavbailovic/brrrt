@@ -1,4 +1,5 @@
 pub mod bitops;
+pub mod debug;
 pub mod memory;
 pub mod risc32i;
 
@@ -65,14 +66,17 @@ impl Cpu {
         let immediate = (im115 << 5) | im40; // https://stackoverflow.com/a/60239441
         let address = self.register.get(rs1) as i32 + bitops::sign_extend(immediate, 12);
 
-        // eprintln!("rs1: {:?}", rs1);
-        // eprintln!("rs2: {:?}", rs2);
-        // eprintln!(" f3: {:#05b} ({})", f3, f3);
-        // eprintln!("im1: {:#014b} ({})", im115, im115);
-        // eprintln!("im4: {:#014b} ({})", im40, im40);
-        // eprintln!("imm: {:#014b} ({})", immediate, immediate);
-        // eprintln!("ext: {:#014b} ({})", bitops::sign_extend(immediate, 12), bitops::sign_extend(immediate, 12));
-        // eprintln!("adr: {:#014b} ({})", address, address);
+        eprintln!("\t\trs1: {:?}", rs1);
+        eprintln!("\t\trs2: {:?}", rs2);
+        eprintln!("\t\t f3: {}", debug::number(f3, 5));
+        eprintln!("\t\tim1: {}", debug::number(im115, 12));
+        eprintln!("\t\tim4: {}", debug::number(im40, 12));
+        eprintln!("\t\timm: {}", debug::number(immediate, 12));
+        eprintln!(
+            "\t\text: {}",
+            debug::number(bitops::sign_extend(immediate, 12), 12)
+        );
+        eprintln!("\t\tadr: {}", debug::number(address, 12));
 
         match f3 {
             0b000 => {
@@ -115,11 +119,11 @@ impl Cpu {
         let immediate = i.value(Part::Imm110).expect("invalid imm110");
         let address = self.register.get(rs1) as i32 + bitops::sign_extend(immediate, 12);
 
-        // eprintln!("rsd: {:?}", rsd);
-        // eprintln!("rs1: {:?}", rs1);
-        // eprintln!(" f3: {:#05b} ({})", f3, f3);
-        // eprintln!("imm: {:#014b} ({})", immediate, immediate);
-        // eprintln!("adr: {:#014b} ({})", address, address);
+        eprintln!("\t\trsd: {:?}", rsd);
+        eprintln!("\t\trs1: {:?}", rs1);
+        eprintln!("\t\t f3: {}", debug::number(f3, 3));
+        eprintln!("\t\timm: {}", debug::number(immediate, 12));
+        eprintln!("\t\tadr: {}", debug::number(address, 12));
 
         match f3 {
             0b000 => {
@@ -182,6 +186,11 @@ impl Cpu {
             .expect("invalid register");
         let immediate = i.value(Part::Imm3112).expect("invalid immediate 31:12");
         let pc = self.register.get(Register::PC);
+
+        eprintln!("\t\trsd: {:?}", rsd);
+        eprintln!("\t\timm: {}", debug::number(immediate, 20));
+        eprintln!("\t\t pc: {}", pc);
+
         self.register.set(
             rsd,
             (immediate & 0b0000_0000_0000_1111_1111_1111_1111_1111) + pc,
@@ -196,19 +205,16 @@ impl Cpu {
             .try_into()
             .expect("invalid register");
         let immediate = i.value(Part::Imm3112).expect("invalid immediate 31:12");
+
+        eprintln!("\t\trsd: {:?}", rsd);
+        eprintln!("\t\timm: {}", debug::number(immediate, 20));
+
         self.register
             .set(rsd, immediate & 0b0000_0000_0000_1111_1111_1111_1111_1111);
         Ok(())
     }
 
     fn branch(&mut self, i: Instruction) -> Result<(), &'static str> {
-        let immediate = (0
-            | (i.value(Part::B12b).expect("invalid B12b") << 11)
-            | (i.value(Part::B11b).expect("invalid B11b") << 10)
-            | (i.value(Part::Imm105).expect("invalid Imm105") << 4)
-            | (i.value(Part::Imm41).expect("invalid Imm41") << 0))
-            >> 1;
-        let address = bitops::sign_extend(immediate << 1, 12) * 2;
         let rs1: Register = i
             .value(Part::Reg1)
             .expect("invalid reg1")
@@ -221,6 +227,39 @@ impl Cpu {
             .expect("invalid register");
         let f3 = i.value(Part::Funct3).expect("invalid funct3");
         let pc = (self.register.get(Register::PC) as i32) - REGISTER_INCREMENT as i32;
+
+        eprintln!("\t\t- rs1: {:?}", rs1);
+        eprintln!("\t\t- rs2: {:?}", rs2);
+        eprintln!("\t\t-  pc: {}", pc);
+        eprintln!("\t\t-  f3: {}", debug::number(f3, 3));
+
+        let immediate = 0
+            | (i.value(Part::B12b).expect("invalid B12b") << 11)
+            | (i.value(Part::B11b).expect("invalid B11b") << 10)
+            | (i.value(Part::Imm105).expect("invalid Imm105") << 4)
+            | (i.value(Part::Imm41).expect("invalid Imm41") << 0);
+        eprintln!(
+            "\t\t\t- b12b: {}",
+            debug::number(i.value(Part::B12b).unwrap(), 12)
+        );
+        eprintln!(
+            "\t\t\t- b11b: {}",
+            debug::number(i.value(Part::B11b).unwrap(), 12)
+        );
+        eprintln!(
+            "\t\t\t- imm1: {}",
+            debug::number(i.value(Part::Imm105).unwrap(), 12)
+        );
+        eprintln!(
+            "\t\t\t- imm4: {}",
+            debug::number(i.value(Part::Imm41).unwrap(), 12)
+        );
+        eprintln!("\t\t- rim: {}", debug::number(immediate, 12));
+
+        let immediate = (immediate >> 1) << 1;
+        let address = bitops::sign_extend(immediate, 12) * 2;
+        eprintln!("\t\t- imm: {}", debug::number(immediate, 12));
+        eprintln!("\t\t- adr: {}", debug::number(address, 12));
 
         match f3 {
             0b000 => {
@@ -285,6 +324,13 @@ impl Cpu {
         let pc = self.register.get(Register::PC);
         let address =
             (self.register.get(rs1) + immediate) & 0b0111_1111_1111_1111_1111_1111_1111_1111;
+
+        eprintln!("\t\t- rsd: {:?}", rsd);
+        eprintln!("\t\t- rs1: {:?}", rs1);
+        eprintln!("\t\t-  pc: {}", debug::number(pc, 12));
+        eprintln!("\t\t- imm: {}", debug::number(immediate, 12));
+        eprintln!("\t\t- adr: {}", debug::number(address, 12));
+
         self.register.set(rsd, pc + REGISTER_INCREMENT);
         self.register
             .set(Register::PC, address - REGISTER_INCREMENT); // Because on Ok PC gets incremented
@@ -306,13 +352,30 @@ impl Cpu {
         if rsd != Register::X0 {
             self.register.set(rsd, pc + REGISTER_INCREMENT);
         }
+
+        eprintln!("\t\t- rsd: {:?}", rsd);
+        eprintln!("\t\t- pc: {}", pc);
+        eprintln!(
+            "\t\t\t- im10: {}",
+            debug::number(i.value(Part::Imm101).unwrap(), 12)
+        );
+        eprintln!(
+            "\t\t\t- b11j: {}",
+            debug::number(i.value(Part::B11j).unwrap(), 12)
+        );
+        eprintln!(
+            "\t\t\t- im19: {}",
+            debug::number(i.value(Part::Imm1912).unwrap(), 12)
+        );
+        eprintln!("\t\t- imm: {}", debug::number(immediate, 12));
+
         self.register
             .set(Register::PC, pc + immediate - REGISTER_INCREMENT); // because Ok will increment PC
         Ok(())
     }
 
     fn immediate_math(&mut self, i: Instruction) -> Result<(), &'static str> {
-        let f3 = i.value(Part::Funct3).unwrap();
+        let f3 = i.value(Part::Funct3).expect("invalid f3");
 
         match f3 {
             0b001 | 0b101 => self.immediate_math_shift(i),
@@ -321,10 +384,23 @@ impl Cpu {
     }
 
     fn immediate_math_normal(&mut self, i: Instruction) -> Result<(), &'static str> {
-        let f3 = i.value(Part::Funct3).unwrap();
-        let immediate = i.value(Part::Imm110).unwrap();
-        let rs1: Register = i.value(Part::Reg1).unwrap().try_into().unwrap();
-        let rsd: Register = i.value(Part::Dest).unwrap().try_into().unwrap();
+        let f3 = i.value(Part::Funct3).expect("invalid f3");
+        let immediate = i.value(Part::Imm110).expect("invalid imm110");
+        let rs1: Register = i
+            .value(Part::Reg1)
+            .expect("invalid reg1")
+            .try_into()
+            .expect("invalid register");
+        let rsd: Register = i
+            .value(Part::Dest)
+            .expect("invalid dest")
+            .try_into()
+            .expect("invalid register");
+
+        eprintln!("\t\t- rs1: {:?}", rs1);
+        eprintln!("\t\t- rsd: {:?}", rsd);
+        eprintln!("\t\t-  f3: {}", debug::number(f3, 3));
+        eprintln!("\t\t- imm: {}", debug::number(immediate, 12));
 
         match f3 {
             0b000 => {
@@ -391,13 +467,28 @@ impl Cpu {
 
     fn immediate_math_shift(&mut self, i: Instruction) -> Result<(), &'static str> {
         let f3 = i.value(Part::Funct3).unwrap();
-        let raw_immediate = i.value(Part::Imm110).unwrap();
+        let raw_immediate = i.value(Part::Imm110).expect("invalid imm110");
 
         let immediate = raw_immediate & 0b000_0000_0000_0000_0000_0000_0000_0001_1111;
         let shift = raw_immediate & 0b000_0000_0000_0000_0000_0000_1111_1110_0000;
 
-        let rs1: Register = i.value(Part::Reg1).unwrap().try_into().unwrap();
-        let rsd: Register = i.value(Part::Dest).unwrap().try_into().unwrap();
+        let rs1: Register = i
+            .value(Part::Reg1)
+            .expect("invalid reg1")
+            .try_into()
+            .expect("invalid register");
+        let rsd: Register = i
+            .value(Part::Dest)
+            .expect("invalid dest")
+            .try_into()
+            .expect("invalid register");
+
+        eprintln!("\t\t- rs1: {:?}", rs1);
+        eprintln!("\t\t- rsd: {:?}", rsd);
+        eprintln!("\t\t-  f3: {}", debug::number(f3, 3));
+        eprintln!("\t\t- rim: {}", debug::number(raw_immediate, 12));
+        eprintln!("\t\t- imm: {}", debug::number(immediate, 12));
+        eprintln!("\t\t- shf: {}", debug::number(shift, 12));
 
         match (f3, shift) {
             (0b001, 0b0000000) => {
@@ -421,11 +512,29 @@ impl Cpu {
     }
 
     fn register_math(&mut self, i: Instruction) -> Result<(), &'static str> {
-        let f3 = i.value(Part::Funct3).unwrap();
-        let f7 = i.value(Part::Funct7).unwrap();
-        let rs1: Register = i.value(Part::Reg1).unwrap().try_into().unwrap();
-        let rs2: Register = i.value(Part::Reg2).unwrap().try_into().unwrap();
-        let rsd: Register = i.value(Part::Dest).unwrap().try_into().unwrap();
+        let f3 = i.value(Part::Funct3).expect("invalid funct3");
+        let f7 = i.value(Part::Funct7).expect("invalid funct7");
+        let rs1: Register = i
+            .value(Part::Reg1)
+            .expect("invalid reg1")
+            .try_into()
+            .expect("invalid register");
+        let rs2: Register = i
+            .value(Part::Reg2)
+            .expect("invalid reg2")
+            .try_into()
+            .expect("invalid register");
+        let rsd: Register = i
+            .value(Part::Dest)
+            .expect("invalid dest")
+            .try_into()
+            .expect("invalid register");
+
+        eprintln!("\t\t- rs1: {:?}", rs1);
+        eprintln!("\t\t- rs2: {:?}", rs2);
+        eprintln!("\t\t- rsd: {:?}", rsd);
+        eprintln!("\t\t-  f3: {}", debug::number(f3, 3));
+        eprintln!("\t\t-  f7: {}", debug::number(f7, 8));
 
         match (f3, f7) {
             (0b000, 0b0000000) => {

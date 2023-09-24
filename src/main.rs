@@ -1,3 +1,5 @@
+mod debug;
+
 fn main() {
-    println!("yo");
+    println!("Binary: {}, {}", 1, debug::binary(1, 32));
 }
