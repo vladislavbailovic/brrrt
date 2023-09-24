@@ -343,11 +343,11 @@ impl Cpu {
             .expect("invalid destination")
             .try_into()
             .expect("invalid register");
-        let immediate = i.value(Part::B20j).expect("invalid b20j")
-            | i.value(Part::Imm101).expect("invalid immediate 10:1")
-            | i.value(Part::B11j).expect("invalid b11j")
-            | i.value(Part::Imm1912).expect("invalid immediate 10:1");
-        // TODO: sign-extended?
+        let immediate = 0
+            | (i.value(Part::B20j).expect("invalid b20j") << 19)
+            | (i.value(Part::Imm1912).expect("invalid immediate 1912") << 11)
+            | (i.value(Part::B11j).expect("invalid b11j") << 10)
+            | (i.value(Part::Imm101).expect("invalid immediate 10:1") << 0);
         let pc = self.register.get(Register::PC);
         if rsd != Register::X0 {
             self.register.set(rsd, pc + REGISTER_INCREMENT);
@@ -356,21 +356,28 @@ impl Cpu {
         eprintln!("\t\t- rsd: {:?}", rsd);
         eprintln!("\t\t- pc: {}", pc);
         eprintln!(
-            "\t\t\t- im10: {}",
-            debug::number(i.value(Part::Imm101).unwrap(), 12)
-        );
-        eprintln!(
-            "\t\t\t- b11j: {}",
-            debug::number(i.value(Part::B11j).unwrap(), 12)
+            "\t\t\t- b20b: {}",
+            debug::number(i.value(Part::B20j).unwrap(), 20)
         );
         eprintln!(
             "\t\t\t- im19: {}",
-            debug::number(i.value(Part::Imm1912).unwrap(), 12)
+            debug::number(i.value(Part::Imm1912).unwrap(), 20)
         );
-        eprintln!("\t\t- imm: {}", debug::number(immediate, 12));
+        eprintln!(
+            "\t\t\t- b11j: {}",
+            debug::number(i.value(Part::B11j).unwrap(), 20)
+        );
+        eprintln!(
+            "\t\t\t- im10: {}",
+            debug::number(i.value(Part::Imm101).unwrap(), 20)
+        );
+        eprintln!("\t\t- imm: {}", debug::number(immediate, 20));
+
+        let immediate = bitops::sign_extend(immediate, 20);
+        eprintln!("\t\t- sim: {}", debug::number(immediate, 20));
 
         self.register
-            .set(Register::PC, pc + immediate - REGISTER_INCREMENT); // because Ok will increment PC
+            .set(Register::PC, (pc as i32 + immediate) as u32);
         Ok(())
     }
 

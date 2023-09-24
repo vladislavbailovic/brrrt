@@ -8,9 +8,9 @@ mod immediate {
         let i = Instruction::parse(
             Builder::opcode(Operation::JAL)
                 .pack(Part::Dest, Register::X1 as u32)
-                .pack(Part::Imm1912, 13)
+                .pack(Part::Imm1912, 0)
                 .pack(Part::B11j, 0)
-                .pack(Part::Imm101, 0)
+                .pack(Part::Imm101, 13)
                 .pack(Part::B20j, 0)
                 .build(),
         )
@@ -22,7 +22,7 @@ mod immediate {
         cpu.execute(i).expect("should execute");
 
         assert_eq!(cpu.register.get(Register::X1), 4);
-        assert_eq!(cpu.register.get(Register::PC), 13);
+        assert_eq!(cpu.register.get(Register::PC), 17);
     }
 
     #[test]
@@ -30,9 +30,9 @@ mod immediate {
         let i = Instruction::parse(
             Builder::opcode(Operation::JAL)
                 .pack(Part::Dest, Register::X1 as u32)
-                .pack(Part::Imm1912, 13)
+                .pack(Part::Imm1912, 0)
                 .pack(Part::B11j, 0)
-                .pack(Part::Imm101, 0)
+                .pack(Part::Imm101, 13)
                 .pack(Part::B20j, 0)
                 .build(),
         )
@@ -44,7 +44,7 @@ mod immediate {
         cpu.execute(i).expect("should execute");
 
         assert_eq!(cpu.register.get(Register::X1), 16);
-        assert_eq!(cpu.register.get(Register::PC), 25);
+        assert_eq!(cpu.register.get(Register::PC), 29);
     }
 
     #[test]
@@ -52,9 +52,9 @@ mod immediate {
         let i = Instruction::parse(
             Builder::opcode(Operation::JAL)
                 .pack(Part::Dest, Register::X0 as u32)
-                .pack(Part::Imm1912, 13)
+                .pack(Part::Imm1912, 0)
                 .pack(Part::B11j, 0)
-                .pack(Part::Imm101, 0)
+                .pack(Part::Imm101, 13)
                 .pack(Part::B20j, 0)
                 .build(),
         )
@@ -66,7 +66,7 @@ mod immediate {
         cpu.execute(i).expect("should execute");
 
         assert_eq!(cpu.register.get(Register::X0), 0);
-        assert_eq!(cpu.register.get(Register::PC), 13);
+        assert_eq!(cpu.register.get(Register::PC), 17);
     }
 }
 
