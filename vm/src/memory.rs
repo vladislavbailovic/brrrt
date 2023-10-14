@@ -95,15 +95,35 @@ impl Memory {
         let b3 = (self.data[address + 2] as u32) << 16;
         let b4 = (self.data[address + 3] as u32) << 24;
         let res = b1 | b2 | b3 | b4;
-        // eprintln!("get m1: {:#010b} ({})", self.data[address+0], self.data[address]);
-        // eprintln!("get m2: {:#010b} ({})", self.data[address+1], self.data[address+1]);
-        // eprintln!("get m3: {:#010b} ({})", self.data[address+2], self.data[address+2]);
-        // eprintln!("get m4: {:#010b} ({})", self.data[address+3], self.data[address+3]);
-        // eprintln!("get 1:  {:#010b} ({})", b1, b1);
-        // eprintln!("get 2:  {:#010b} ({})", b2, b2);
-        // eprintln!("get 3:  {:#010b} ({})", b3, b3);
-        // eprintln!("get 4:  {:#010b} ({})", b4, b4);
-        // eprintln!("get e:  {:#034b} ({})", res, res);
+
+        #[cfg(feature = "trace")]
+        {
+            eprintln!(
+                "get m1: {:#010b} ({})",
+                self.data[address + 0],
+                self.data[address]
+            );
+            eprintln!(
+                "get m2: {:#010b} ({})",
+                self.data[address + 1],
+                self.data[address + 1]
+            );
+            eprintln!(
+                "get m3: {:#010b} ({})",
+                self.data[address + 2],
+                self.data[address + 2]
+            );
+            eprintln!(
+                "get m4: {:#010b} ({})",
+                self.data[address + 3],
+                self.data[address + 3]
+            );
+            eprintln!("get 1:  {:#010b} ({})", b1, b1);
+            eprintln!("get 2:  {:#010b} ({})", b2, b2);
+            eprintln!("get 3:  {:#010b} ({})", b3, b3);
+            eprintln!("get 4:  {:#010b} ({})", b4, b4);
+            eprintln!("get e:  {:#034b} ({})", res, res);
+        }
         Ok(res)
     }
 
@@ -121,17 +141,35 @@ impl Memory {
         self.data[address + 1] = b2;
         self.data[address + 2] = b3;
         self.data[address + 3] = b4;
-        // let res = b1 as u32 | ((b2 as u32) << 8) | ((b3 as u32) << 16) | ((b4 as u32) << 24);
-        // eprintln!("set v:  {:#018b} ({})", hw, hw);
-        // eprintln!("set 1:  {:#010b} ({})", b1, b1);
-        // eprintln!("set 2:  {:#010b} ({})", b2, b2);
-        // eprintln!("set 3:  {:#010b} ({})", b3, b3);
-        // eprintln!("set 4:  {:#010b} ({})", b4, b4);
-        // eprintln!("set e:  {:#034b} ({})", res, res);
-        // eprintln!("set m1: {:#018b} ({})", self.data[address+0], self.data[address]);
-        // eprintln!("set m2: {:#018b} ({})", self.data[address+1], self.data[address+1]);
-        // eprintln!("set m3: {:#018b} ({})", self.data[address+2], self.data[address+2]);
-        // eprintln!("set m4: {:#018b} ({})", self.data[address+3], self.data[address+3]);
+
+        #[cfg(feature = "trace")]
+        {
+            eprintln!("set v:  {:#018b} ({})", hw, hw);
+            eprintln!("set 1:  {:#010b} ({})", b1, b1);
+            eprintln!("set 2:  {:#010b} ({})", b2, b2);
+            eprintln!("set 3:  {:#010b} ({})", b3, b3);
+            eprintln!("set 4:  {:#010b} ({})", b4, b4);
+            eprintln!(
+                "set m1: {:#018b} ({})",
+                self.data[address + 0],
+                self.data[address]
+            );
+            eprintln!(
+                "set m2: {:#018b} ({})",
+                self.data[address + 1],
+                self.data[address + 1]
+            );
+            eprintln!(
+                "set m3: {:#018b} ({})",
+                self.data[address + 2],
+                self.data[address + 2]
+            );
+            eprintln!(
+                "set m4: {:#018b} ({})",
+                self.data[address + 3],
+                self.data[address + 3]
+            );
+        }
         Ok(())
     }
 }
