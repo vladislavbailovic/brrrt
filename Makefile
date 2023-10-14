@@ -10,3 +10,7 @@ $(BINFILES): $(OUTFILES)
 
 $(OUTFILES): $(ASMFILES)
 	riscv64-unknown-linux-gnu-as -o $@ $(patsubst %.out,%.asm,$@)
+
+clean:
+	rm $(OUTFILES)
+	rm $(BINFILES)
