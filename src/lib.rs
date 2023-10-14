@@ -55,7 +55,7 @@ impl Program {
             if (vm.cpu.register.get(Register::PC) / 4) as usize == self.end {
                 break;
             }
-            eprintln!("");
+            eprintln!();
         }
         Ok(())
     }
@@ -269,6 +269,7 @@ impl VM {
         Ok(())
     }
 
+    #[allow(clippy::identity_op)] // readability
     fn branch(&mut self, i: Instruction) -> Result<(), &'static str> {
         let rs1: Register = i
             .value(Part::Reg1)
@@ -393,6 +394,7 @@ impl VM {
         Ok(())
     }
 
+    #[allow(clippy::identity_op)] // readability
     fn unconditional_jump(&mut self, i: Instruction) -> Result<(), &'static str> {
         let rsd: Register = i
             .value(Part::Dest)

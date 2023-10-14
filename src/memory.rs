@@ -43,6 +43,7 @@ impl Memory {
         Ok(res)
     }
 
+    #[allow(clippy::identity_op)] // readability
     pub fn set_hw_at(&mut self, address: u32, hw: u16) -> Result<(), &'static str> {
         let address = address as usize;
         if address + 1 >= self.data.len() {
@@ -62,6 +63,7 @@ impl Memory {
         Ok(())
     }
 
+    #[allow(clippy::identity_op)] // readability
     pub fn word_at(&self, address: u32) -> Result<u32, &'static str> {
         let address = address as usize;
         if address + 3 >= self.data.len() {
@@ -84,6 +86,7 @@ impl Memory {
         Ok(res)
     }
 
+    #[allow(clippy::identity_op)] // readability
     pub fn set_word_at(&mut self, address: u32, hw: u32) -> Result<(), &'static str> {
         let address = address as usize;
         if address + 3 >= self.data.len() {
