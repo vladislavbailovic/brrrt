@@ -1,4 +1,4 @@
-use brrrt::{
+use brrrt_vm::{
     risc32i::{instr::builder::Builder, instr::operation::*, instr::part::Part},
     Program, Register, VM,
 };

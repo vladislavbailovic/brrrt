@@ -1,4 +1,6 @@
-use crate::{debug, Instruction, Memory, Register, VM};
+#[cfg(feature = "trace")]
+use crate::debug;
+use crate::{Instruction, Memory, Register, VM};
 
 #[derive(Default)]
 pub struct Program {
@@ -24,26 +26,29 @@ impl Program {
 
     pub fn run(&self, vm: &mut VM) -> Result<(), String> {
         for x in 0..100 {
-            let pc = vm.cpu.register.get(Register::PC);
-            let code = self.rom.word_at(pc).expect("invalid memory access");
-            #[cfg(feature = "trace")]
-            {
-                eprintln!("iteration {} :: PC: {}", x, pc);
-            }
-
-            _ = x; // stfu clippy
-            let inst = Instruction::parse(code).expect("should parse");
-            #[cfg(feature = "trace")]
-            {
-                eprintln!("{x}: {}", debug::binary(code, 32));
-                eprintln!("\t{:?}", inst);
-            }
-
-            vm.execute(inst)?;
+            self.step(vm, x)?;
             if (vm.cpu.register.get(Register::PC) / 4) as usize == self.end {
                 break;
             }
         }
         Ok(())
+    }
+
+    pub fn step(&self, vm: &mut VM, _iteration: usize) -> Result<(), &str> {
+        let pc = vm.cpu.register.get(Register::PC);
+        let code = self.rom.word_at(pc).expect("invalid memory access");
+        #[cfg(feature = "trace")]
+        {
+            eprintln!("iteration {} :: PC: {}", _iteration, pc);
+        }
+
+        let inst = Instruction::parse(code).expect("should parse");
+        #[cfg(feature = "trace")]
+        {
+            eprintln!("{}: {}", _iteration, debug::binary(code, 32));
+            eprintln!("\t{:?}", inst);
+        }
+
+        vm.execute(inst)
     }
 }

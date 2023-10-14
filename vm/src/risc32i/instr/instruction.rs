@@ -21,6 +21,7 @@ impl Instruction {
         })
     }
 
+    #[cfg(test)]
     pub(crate) fn get(&self, part: Part) -> Result<u32, ()> {
         for x in self.format.get() {
             if x == part {

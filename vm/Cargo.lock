@@ -3,12 +3,5 @@
 version = 3
 
 [[package]]
-name = "brrrt-vm"
+name = "brrrt"
 version = "0.1.0"
-
-[[package]]
-name = "debugger"
-version = "0.1.0"
-dependencies = [
- "brrrt-vm",
-]

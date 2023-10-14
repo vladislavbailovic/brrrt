@@ -1,12 +1,18 @@
-use brrrt::{Program, Register, VM};
+use brrrt_vm::{Program, Register, VM};
 
-// https://riscvasm.lucasteske.dev
+/*
+    // https://riscvasm.lucasteske.dev
+    addi x1, x0, 12
+    loop: addi x2, x2, 1
+    bne x1, x2, loop
+    addi x1, x1, 1
+    add x2, x1, x2
+    sw x2, 0(x16)
+*/
 fn main() -> Result<(), String> {
     let mut vm: VM = Default::default();
     let program = Program::from_asm(&[
-        0x00d00093, // addi x1, x0, 13
-        0x00c08113, // addi x2, x1, 12
-        0x00282023, // sw x2, 0(x16)
+        0x00c00093, 0x00110113, 0xfe209ee3, 0x00108093, 0x00208133, 0x00282023,
     ]);
 
     #[cfg(feature = "trace")]

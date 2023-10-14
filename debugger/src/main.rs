@@ -1,4 +1,4 @@
-use brrrt::{Program, Register, VM};
+use brrrt_vm::{Program, Register, VM};
 
 /*
     // https://riscvasm.lucasteske.dev
@@ -27,3 +27,4 @@ fn main() -> Result<(), String> {
 
     Ok(())
 }
+
