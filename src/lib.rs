@@ -22,6 +22,45 @@ mod store;
 pub use memory::Memory;
 use risc32i::{instr::instruction::Instruction, instr::operation::Operation, instr::part::Part};
 
+#[derive(Default)]
+pub struct Program {
+    end: usize,
+    rom: Memory,
+}
+
+impl Program {
+    pub fn from_asm(asm: &[u32]) -> Self {
+        let mut prg: Self = Default::default();
+        for (n, x) in asm.iter().enumerate() {
+            eprintln!("{n}: {}", debug::binary(*x, 32));
+            prg.rom
+                .set_word_at((n * 4) as u32, *x)
+                .expect("invalid memory access");
+        }
+        prg.end = asm.len();
+        prg
+    }
+
+    pub fn run(&self, vm: &mut VM) -> Result<(), String> {
+        for x in 0..100 {
+            let pc = vm.cpu.register.get(Register::PC);
+            let code = self.rom.word_at(pc).expect("invalid memory access");
+            eprintln!("iteration {} :: PC: {}", x, pc);
+
+            let inst = Instruction::parse(code).expect("should parse");
+            eprintln!("{x}: {}", debug::binary(code, 32));
+            eprintln!("\t{:?}", inst);
+
+            vm.execute(inst)?;
+            if (vm.cpu.register.get(Register::PC) / 4) as usize == self.end {
+                break;
+            }
+            eprintln!("");
+        }
+        Ok(())
+    }
+}
+
 #[derive(Default, Debug)]
 pub struct CPU {
     pub register: Registers,
@@ -31,7 +70,7 @@ impl CPU {
     fn increment_pc(&mut self) {
         self.register.set(
             Register::PC,
-            self.register.get(Register::PC) + REGISTER_INCREMENT
+            self.register.get(Register::PC) + REGISTER_INCREMENT,
         );
     }
 }
@@ -145,7 +184,8 @@ impl VM {
                     .ram
                     .byte_at(address.try_into().expect("invalid address"))
                     .expect("invalid memory access");
-                self.cpu.register
+                self.cpu
+                    .register
                     .set(rsd, bitops::sign_extend(value as u32, 8) as u32);
                 Ok(())
             }
@@ -155,7 +195,8 @@ impl VM {
                     .ram
                     .hw_at(address.try_into().expect("invalid address"))
                     .expect("invalid memory access");
-                self.cpu.register
+                self.cpu
+                    .register
                     .set(rsd, bitops::sign_extend(value as u32, 16) as u32);
                 Ok(())
             }
@@ -222,7 +263,8 @@ impl VM {
         eprintln!("\t\trsd: {:?}", rsd);
         eprintln!("\t\timm: {}", debug::number(immediate, 20));
 
-        self.cpu.register
+        self.cpu
+            .register
             .set(rsd, immediate & 0b0000_0000_0000_1111_1111_1111_1111_1111);
         Ok(())
     }
@@ -345,7 +387,8 @@ impl VM {
         eprintln!("\t\t- adr: {}", debug::number(address, 12));
 
         self.cpu.register.set(rsd, pc + REGISTER_INCREMENT);
-        self.cpu.register
+        self.cpu
+            .register
             .set(Register::PC, address - REGISTER_INCREMENT); // Because on Ok PC gets incremented
         Ok(())
     }
@@ -389,7 +432,8 @@ impl VM {
         let immediate = bitops::sign_extend(immediate, 20);
         eprintln!("\t\t- sim: {}", debug::number(immediate, 20));
 
-        self.cpu.register
+        self.cpu
+            .register
             .set(Register::PC, (pc as i32 + immediate) as u32);
         Ok(())
     }
@@ -513,17 +557,22 @@ impl VM {
         match (f3, shift) {
             (0b001, 0b0000000) => {
                 // SLLI
-                self.cpu.register.set(rsd, self.cpu.register.get(rs1) << immediate);
+                self.cpu
+                    .register
+                    .set(rsd, self.cpu.register.get(rs1) << immediate);
                 Ok(())
             }
             (0b101, 0b0000000) => {
                 // SRLI
-                self.cpu.register.set(rsd, self.cpu.register.get(rs1) >> immediate);
+                self.cpu
+                    .register
+                    .set(rsd, self.cpu.register.get(rs1) >> immediate);
                 Ok(())
             }
             (0b101, 0b0100000) => {
                 // SRAI: TODO: is this right?
-                self.cpu.register
+                self.cpu
+                    .register
                     .set(rsd, self.cpu.register.get(rs1).wrapping_shr(immediate));
                 Ok(())
             }
@@ -558,13 +607,15 @@ impl VM {
 
         match (f3, f7) {
             (0b000, 0b0000000) => {
-                self.cpu.register
+                self.cpu
+                    .register
                     .set(rsd, self.cpu.register.get(rs1) + self.cpu.register.get(rs2));
                 Ok(())
             }
             (0b000, 0b0100000) => {
                 // TODO: Overflows are ignored and the low XLEN bits of results are written to the destination rd
-                self.cpu.register
+                self.cpu
+                    .register
                     .set(rsd, self.cpu.register.get(rs1) - self.cpu.register.get(rs2));
                 Ok(())
             }
@@ -599,7 +650,8 @@ impl VM {
                 self.cpu.register.set(
                     rsd,
                     self.cpu.register.get(rs1)
-                        << (self.cpu.register.get(rs2) & 0b000_0000_0000_0000_0000_0000_0000_0001_1111),
+                        << (self.cpu.register.get(rs2)
+                            & 0b000_0000_0000_0000_0000_0000_0000_0001_1111),
                 );
                 Ok(())
             }
@@ -608,7 +660,8 @@ impl VM {
                 self.cpu.register.set(
                     rsd,
                     self.cpu.register.get(rs1)
-                        >> (self.cpu.register.get(rs2) & 0b000_0000_0000_0000_0000_0000_0000_0001_1111),
+                        >> (self.cpu.register.get(rs2)
+                            & 0b000_0000_0000_0000_0000_0000_0000_0001_1111),
                 );
                 Ok(())
             }
@@ -620,17 +673,20 @@ impl VM {
                 Ok(())
             }
             (0b100, 0b0000000) => {
-                self.cpu.register
+                self.cpu
+                    .register
                     .set(rsd, self.cpu.register.get(rs1) ^ self.cpu.register.get(rs2));
                 Ok(())
             }
             (0b110, 0b0000000) => {
-                self.cpu.register
+                self.cpu
+                    .register
                     .set(rsd, self.cpu.register.get(rs1) | self.cpu.register.get(rs2));
                 Ok(())
             }
             (0b111, 0b0000000) => {
-                self.cpu.register
+                self.cpu
+                    .register
                     .set(rsd, self.cpu.register.get(rs1) & self.cpu.register.get(rs2));
                 Ok(())
             }
