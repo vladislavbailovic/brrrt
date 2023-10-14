@@ -12,7 +12,10 @@ fn main() -> Result<(), String> {
     let mut vm: VM = Default::default();
     let program = Program::from_asm(&[0x00d00093, 0x00c00113, 0x0080006f, 0x0a100113, 0x00282023]);
 
-    eprintln!("-------------------------------------");
+    #[cfg(feature = "trace")]
+    {
+        eprintln!("\n-------------------------------------");
+    }
 
     program.run(&mut vm)?;
 

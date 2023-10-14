@@ -32,7 +32,10 @@ impl Program {
     pub fn from_asm(asm: &[u32]) -> Self {
         let mut prg: Self = Default::default();
         for (n, x) in asm.iter().enumerate() {
-            eprintln!("{n}: {}", debug::binary(*x, 32));
+            #[cfg(feature = "trace")]
+            {
+                eprintln!("{n}: {}", debug::binary(*x, 32));
+            }
             prg.rom
                 .set_word_at((n * 4) as u32, *x)
                 .expect("invalid memory access");
@@ -45,17 +48,23 @@ impl Program {
         for x in 0..100 {
             let pc = vm.cpu.register.get(Register::PC);
             let code = self.rom.word_at(pc).expect("invalid memory access");
-            eprintln!("iteration {} :: PC: {}", x, pc);
+            #[cfg(feature = "trace")]
+            {
+                eprintln!("iteration {} :: PC: {}", x, pc);
+            }
 
+            _ = x; // stfu clippy
             let inst = Instruction::parse(code).expect("should parse");
-            eprintln!("{x}: {}", debug::binary(code, 32));
-            eprintln!("\t{:?}", inst);
+            #[cfg(feature = "trace")]
+            {
+                eprintln!("{x}: {}", debug::binary(code, 32));
+                eprintln!("\t{:?}", inst);
+            }
 
             vm.execute(inst)?;
             if (vm.cpu.register.get(Register::PC) / 4) as usize == self.end {
                 break;
             }
-            eprintln!();
         }
         Ok(())
     }
@@ -118,17 +127,20 @@ impl VM {
         let immediate = (im115 << 5) | im40; // https://stackoverflow.com/a/60239441
         let address = self.cpu.register.get(rs1) as i32 + bitops::sign_extend(immediate, 12);
 
-        eprintln!("\t\trs1: {:?}", rs1);
-        eprintln!("\t\trs2: {:?}", rs2);
-        eprintln!("\t\t f3: {}", debug::number(f3, 5));
-        eprintln!("\t\tim1: {}", debug::number(im115, 12));
-        eprintln!("\t\tim4: {}", debug::number(im40, 12));
-        eprintln!("\t\timm: {}", debug::number(immediate, 12));
-        eprintln!(
-            "\t\text: {}",
-            debug::number(bitops::sign_extend(immediate, 12), 12)
-        );
-        eprintln!("\t\tadr: {}", debug::number(address, 12));
+        #[cfg(feature = "trace")]
+        {
+            eprintln!("\t\trs1: {:?}", rs1);
+            eprintln!("\t\trs2: {:?}", rs2);
+            eprintln!("\t\t f3: {}", debug::number(f3, 5));
+            eprintln!("\t\tim1: {}", debug::number(im115, 12));
+            eprintln!("\t\tim4: {}", debug::number(im40, 12));
+            eprintln!("\t\timm: {}", debug::number(immediate, 12));
+            eprintln!(
+                "\t\text: {}",
+                debug::number(bitops::sign_extend(immediate, 12), 12)
+            );
+            eprintln!("\t\tadr: {}", debug::number(address, 12));
+        }
 
         match f3 {
             0b000 => {
@@ -171,11 +183,14 @@ impl VM {
         let immediate = i.value(Part::Imm110).expect("invalid imm110");
         let address = self.cpu.register.get(rs1) as i32 + bitops::sign_extend(immediate, 12);
 
-        eprintln!("\t\trsd: {:?}", rsd);
-        eprintln!("\t\trs1: {:?}", rs1);
-        eprintln!("\t\t f3: {}", debug::number(f3, 3));
-        eprintln!("\t\timm: {}", debug::number(immediate, 12));
-        eprintln!("\t\tadr: {}", debug::number(address, 12));
+        #[cfg(feature = "trace")]
+        {
+            eprintln!("\t\trsd: {:?}", rsd);
+            eprintln!("\t\trs1: {:?}", rs1);
+            eprintln!("\t\t f3: {}", debug::number(f3, 3));
+            eprintln!("\t\timm: {}", debug::number(immediate, 12));
+            eprintln!("\t\tadr: {}", debug::number(address, 12));
+        }
 
         match f3 {
             0b000 => {
@@ -241,9 +256,12 @@ impl VM {
         let immediate = i.value(Part::Imm3112).expect("invalid immediate 31:12");
         let pc = self.cpu.register.get(Register::PC);
 
-        eprintln!("\t\trsd: {:?}", rsd);
-        eprintln!("\t\timm: {}", debug::number(immediate, 20));
-        eprintln!("\t\t pc: {}", pc);
+        #[cfg(feature = "trace")]
+        {
+            eprintln!("\t\trsd: {:?}", rsd);
+            eprintln!("\t\timm: {}", debug::number(immediate, 20));
+            eprintln!("\t\t pc: {}", pc);
+        }
 
         self.cpu.register.set(
             rsd,
@@ -260,8 +278,11 @@ impl VM {
             .expect("invalid register");
         let immediate = i.value(Part::Imm3112).expect("invalid immediate 31:12");
 
-        eprintln!("\t\trsd: {:?}", rsd);
-        eprintln!("\t\timm: {}", debug::number(immediate, 20));
+        #[cfg(feature = "trace")]
+        {
+            eprintln!("\t\trsd: {:?}", rsd);
+            eprintln!("\t\timm: {}", debug::number(immediate, 20));
+        }
 
         self.cpu
             .register
@@ -284,38 +305,47 @@ impl VM {
         let f3 = i.value(Part::Funct3).expect("invalid funct3");
         let pc = (self.cpu.register.get(Register::PC) as i32) - REGISTER_INCREMENT as i32;
 
-        eprintln!("\t\t- rs1: {:?}", rs1);
-        eprintln!("\t\t- rs2: {:?}", rs2);
-        eprintln!("\t\t-  pc: {}", pc);
-        eprintln!("\t\t-  f3: {}", debug::number(f3, 3));
+        #[cfg(feature = "trace")]
+        {
+            eprintln!("\t\t- rs1: {:?}", rs1);
+            eprintln!("\t\t- rs2: {:?}", rs2);
+            eprintln!("\t\t-  pc: {}", pc);
+            eprintln!("\t\t-  f3: {}", debug::number(f3, 3));
+        }
 
         let immediate = 0
             | (i.value(Part::B12b).expect("invalid B12b") << 11)
             | (i.value(Part::B11b).expect("invalid B11b") << 10)
             | (i.value(Part::Imm105).expect("invalid Imm105") << 4)
             | (i.value(Part::Imm41).expect("invalid Imm41") << 0);
-        eprintln!(
-            "\t\t\t- b12b: {}",
-            debug::number(i.value(Part::B12b).unwrap(), 12)
-        );
-        eprintln!(
-            "\t\t\t- b11b: {}",
-            debug::number(i.value(Part::B11b).unwrap(), 12)
-        );
-        eprintln!(
-            "\t\t\t- imm1: {}",
-            debug::number(i.value(Part::Imm105).unwrap(), 12)
-        );
-        eprintln!(
-            "\t\t\t- imm4: {}",
-            debug::number(i.value(Part::Imm41).unwrap(), 12)
-        );
-        eprintln!("\t\t- rim: {}", debug::number(immediate, 12));
+        #[cfg(feature = "trace")]
+        {
+            eprintln!(
+                "\t\t\t- b12b: {}",
+                debug::number(i.value(Part::B12b).unwrap(), 12)
+            );
+            eprintln!(
+                "\t\t\t- b11b: {}",
+                debug::number(i.value(Part::B11b).unwrap(), 12)
+            );
+            eprintln!(
+                "\t\t\t- imm1: {}",
+                debug::number(i.value(Part::Imm105).unwrap(), 12)
+            );
+            eprintln!(
+                "\t\t\t- imm4: {}",
+                debug::number(i.value(Part::Imm41).unwrap(), 12)
+            );
+            eprintln!("\t\t- rim: {}", debug::number(immediate, 12));
+        }
 
         let immediate = (immediate >> 1) << 1;
         let address = bitops::sign_extend(immediate, 12) * 2;
-        eprintln!("\t\t- imm: {}", debug::number(immediate, 12));
-        eprintln!("\t\t- adr: {}", debug::number(address, 12));
+        #[cfg(feature = "trace")]
+        {
+            eprintln!("\t\t- imm: {}", debug::number(immediate, 12));
+            eprintln!("\t\t- adr: {}", debug::number(address, 12));
+        }
 
         match f3 {
             0b000 => {
@@ -381,11 +411,14 @@ impl VM {
         let address =
             (self.cpu.register.get(rs1) + immediate) & 0b0111_1111_1111_1111_1111_1111_1111_1111;
 
-        eprintln!("\t\t- rsd: {:?}", rsd);
-        eprintln!("\t\t- rs1: {:?}", rs1);
-        eprintln!("\t\t-  pc: {}", debug::number(pc, 12));
-        eprintln!("\t\t- imm: {}", debug::number(immediate, 12));
-        eprintln!("\t\t- adr: {}", debug::number(address, 12));
+        #[cfg(feature = "trace")]
+        {
+            eprintln!("\t\t- rsd: {:?}", rsd);
+            eprintln!("\t\t- rs1: {:?}", rs1);
+            eprintln!("\t\t-  pc: {}", debug::number(pc, 12));
+            eprintln!("\t\t- imm: {}", debug::number(immediate, 12));
+            eprintln!("\t\t- adr: {}", debug::number(address, 12));
+        }
 
         self.cpu.register.set(rsd, pc + REGISTER_INCREMENT);
         self.cpu
@@ -411,28 +444,34 @@ impl VM {
             self.cpu.register.set(rsd, pc + REGISTER_INCREMENT);
         }
 
-        eprintln!("\t\t- rsd: {:?}", rsd);
-        eprintln!("\t\t- pc: {}", pc);
-        eprintln!(
-            "\t\t\t- b20b: {}",
-            debug::number(i.value(Part::B20j).unwrap(), 20)
-        );
-        eprintln!(
-            "\t\t\t- im19: {}",
-            debug::number(i.value(Part::Imm1912).unwrap(), 20)
-        );
-        eprintln!(
-            "\t\t\t- b11j: {}",
-            debug::number(i.value(Part::B11j).unwrap(), 20)
-        );
-        eprintln!(
-            "\t\t\t- im10: {}",
-            debug::number(i.value(Part::Imm101).unwrap(), 20)
-        );
-        eprintln!("\t\t- imm: {}", debug::number(immediate, 20));
+        #[cfg(feature = "trace")]
+        {
+            eprintln!("\t\t- rsd: {:?}", rsd);
+            eprintln!("\t\t- pc: {}", pc);
+            eprintln!(
+                "\t\t\t- b20b: {}",
+                debug::number(i.value(Part::B20j).unwrap(), 20)
+            );
+            eprintln!(
+                "\t\t\t- im19: {}",
+                debug::number(i.value(Part::Imm1912).unwrap(), 20)
+            );
+            eprintln!(
+                "\t\t\t- b11j: {}",
+                debug::number(i.value(Part::B11j).unwrap(), 20)
+            );
+            eprintln!(
+                "\t\t\t- im10: {}",
+                debug::number(i.value(Part::Imm101).unwrap(), 20)
+            );
+            eprintln!("\t\t- imm: {}", debug::number(immediate, 20));
+        }
 
         let immediate = bitops::sign_extend(immediate, 20);
-        eprintln!("\t\t- sim: {}", debug::number(immediate, 20));
+        #[cfg(feature = "trace")]
+        {
+            eprintln!("\t\t- sim: {}", debug::number(immediate, 20));
+        }
 
         self.cpu
             .register
@@ -463,10 +502,13 @@ impl VM {
             .try_into()
             .expect("invalid register");
 
-        eprintln!("\t\t- rs1: {:?}", rs1);
-        eprintln!("\t\t- rsd: {:?}", rsd);
-        eprintln!("\t\t-  f3: {}", debug::number(f3, 3));
-        eprintln!("\t\t- imm: {}", debug::number(immediate, 12));
+        #[cfg(feature = "trace")]
+        {
+            eprintln!("\t\t- rs1: {:?}", rs1);
+            eprintln!("\t\t- rsd: {:?}", rsd);
+            eprintln!("\t\t-  f3: {}", debug::number(f3, 3));
+            eprintln!("\t\t- imm: {}", debug::number(immediate, 12));
+        }
 
         match f3 {
             0b000 => {
@@ -549,12 +591,15 @@ impl VM {
             .try_into()
             .expect("invalid register");
 
-        eprintln!("\t\t- rs1: {:?}", rs1);
-        eprintln!("\t\t- rsd: {:?}", rsd);
-        eprintln!("\t\t-  f3: {}", debug::number(f3, 3));
-        eprintln!("\t\t- rim: {}", debug::number(raw_immediate, 12));
-        eprintln!("\t\t- imm: {}", debug::number(immediate, 12));
-        eprintln!("\t\t- shf: {}", debug::number(shift, 12));
+        #[cfg(feature = "trace")]
+        {
+            eprintln!("\t\t- rs1: {:?}", rs1);
+            eprintln!("\t\t- rsd: {:?}", rsd);
+            eprintln!("\t\t-  f3: {}", debug::number(f3, 3));
+            eprintln!("\t\t- rim: {}", debug::number(raw_immediate, 12));
+            eprintln!("\t\t- imm: {}", debug::number(immediate, 12));
+            eprintln!("\t\t- shf: {}", debug::number(shift, 12));
+        }
 
         match (f3, shift) {
             (0b001, 0b0000000) => {
@@ -601,11 +646,14 @@ impl VM {
             .try_into()
             .expect("invalid register");
 
-        eprintln!("\t\t- rs1: {:?}", rs1);
-        eprintln!("\t\t- rs2: {:?}", rs2);
-        eprintln!("\t\t- rsd: {:?}", rsd);
-        eprintln!("\t\t-  f3: {}", debug::number(f3, 3));
-        eprintln!("\t\t-  f7: {}", debug::number(f7, 8));
+        #[cfg(feature = "trace")]
+        {
+            eprintln!("\t\t- rs1: {:?}", rs1);
+            eprintln!("\t\t- rs2: {:?}", rs2);
+            eprintln!("\t\t- rsd: {:?}", rsd);
+            eprintln!("\t\t-  f3: {}", debug::number(f3, 3));
+            eprintln!("\t\t-  f7: {}", debug::number(f7, 8));
+        }
 
         match (f3, f7) {
             (0b000, 0b0000000) => {
@@ -693,7 +741,10 @@ impl VM {
                 Ok(())
             }
             _ => {
-                eprintln!("doing register math {:#05b}, {:#09b}:", f3, f7);
+                #[cfg(feature = "trace")]
+                {
+                    eprintln!("doing register math {:#05b}, {:#09b}:", f3, f7);
+                }
                 Err("unknown r2r operation")
             }
         }

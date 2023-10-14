@@ -17,10 +17,13 @@ impl Builder {
     pub fn pack(&self, part: Part, data: u32) -> Self {
         let packed = data << part.shift();
         let masked = packed & part.mask();
-        // eprintln!("data  : {:#034b}", data);
-        // eprintln!("packed: {:#034b}", packed);
-        // eprintln!("mask  : {:#034b}", part.mask());
-        // eprintln!("masked: {:#034b}", masked);
+        #[cfg(feature = "trace")]
+        {
+            eprintln!("data  : {:#034b}", data);
+            eprintln!("packed: {:#034b}", packed);
+            eprintln!("mask  : {:#034b}", part.mask());
+            eprintln!("masked: {:#034b}", masked);
+        }
         Builder::new(self.raw | masked)
     }
 

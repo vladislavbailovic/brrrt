@@ -18,7 +18,10 @@ fn main() -> Result<(), String> {
         0x00282023,
     ]);
 
-    eprintln!("-------------------------------------");
+    #[cfg(feature = "trace")]
+    {
+        eprintln!("\n-------------------------------------");
+    }
 
     program.run(&mut vm)?;
 

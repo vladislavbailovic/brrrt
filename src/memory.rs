@@ -35,11 +35,22 @@ impl Memory {
         let b1 = self.data[address] as u16;
         let b2 = (self.data[address + 1] as u16) << 8;
         let res = b1 | b2;
-        // eprintln!("get m1: {:#018b} ({})", self.data[address], self.data[address]);
-        // eprintln!("get m2: {:#018b} ({})", self.data[address+1], self.data[address+1]);
-        // eprintln!("get 1: {:#018b} ({})", b1, b1);
-        // eprintln!("get 2: {:#018b} ({})", b2, b2);
-        // eprintln!("get e: {:#018b} ({})", res, res);
+
+        #[cfg(feature = "trace")]
+        {
+            eprintln!(
+                "get m1: {:#018b} ({})",
+                self.data[address], self.data[address]
+            );
+            eprintln!(
+                "get m2: {:#018b} ({})",
+                self.data[address + 1],
+                self.data[address + 1]
+            );
+            eprintln!("get 1: {:#018b} ({})", b1, b1);
+            eprintln!("get 2: {:#018b} ({})", b2, b2);
+            eprintln!("get e: {:#018b} ({})", res, res);
+        }
         Ok(res)
     }
 
@@ -53,13 +64,23 @@ impl Memory {
         let b2 = (hw >> 8) as u8;
         self.data[address + 0] = b1;
         self.data[address + 1] = b2;
-        // let res = b1 as u16 | ((b2 as u16) << 8);
-        // eprintln!("set v: {:#018b} ({})", hw, hw);
-        // eprintln!("set 1: {:#010b} ({})", b1, b1);
-        // eprintln!("set 2: {:#010b} ({})", b2, b2);
-        // eprintln!("set e: {:#018b} ({})", res, res);
-        // eprintln!("set m1: {:#018b} ({})", self.data[address], self.data[address]);
-        // eprintln!("set m2: {:#018b} ({})", self.data[address+1], self.data[address+1]);
+        #[cfg(feature = "trace")]
+        {
+            let res = b1 as u16 | ((b2 as u16) << 8);
+            eprintln!("set v: {:#018b} ({})", hw, hw);
+            eprintln!("set 1: {:#010b} ({})", b1, b1);
+            eprintln!("set 2: {:#010b} ({})", b2, b2);
+            eprintln!("set e: {:#018b} ({})", res, res);
+            eprintln!(
+                "set m1: {:#018b} ({})",
+                self.data[address], self.data[address]
+            );
+            eprintln!(
+                "set m2: {:#018b} ({})",
+                self.data[address + 1],
+                self.data[address + 1]
+            );
+        }
         Ok(())
     }
 

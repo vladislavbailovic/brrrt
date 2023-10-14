@@ -9,7 +9,10 @@ fn main() -> Result<(), String> {
         0x00282023, // sw x2, 0(x16)
     ]);
 
-    eprintln!("-------------------------------------");
+    #[cfg(feature = "trace")]
+    {
+        eprintln!("\n-------------------------------------");
+    }
 
     program.run(&mut vm)?;
 

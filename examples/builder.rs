@@ -30,7 +30,10 @@ fn main() -> Result<(), String> {
     let mut vm: VM = Default::default();
     let program = Program::from_asm(&from_builder());
 
-    eprintln!("-------------------------------------");
+    #[cfg(feature = "trace")]
+    {
+        eprintln!("\n-------------------------------------");
+    }
 
     program.run(&mut vm)?;
 
