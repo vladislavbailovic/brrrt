@@ -1,6 +1,6 @@
 #[cfg(feature = "trace")]
 use crate::debug;
-use crate::{Instruction, Memory, Register, VM};
+use crate::{Instruction, Memory, Register, REGISTER_INCREMENT, VM};
 
 #[derive(Default)]
 pub struct Program {
@@ -24,10 +24,14 @@ impl Program {
         prg
     }
 
+    pub fn is_done(&self, vm: &VM) -> bool {
+        (vm.cpu.register.get(Register::PC) / REGISTER_INCREMENT) as usize == self.end
+    }
+
     pub fn run(&self, vm: &mut VM) -> Result<(), String> {
         for x in 0..100 {
             self.step(vm, x)?;
-            if (vm.cpu.register.get(Register::PC) / 4) as usize == self.end {
+            if self.is_done(vm) {
                 break;
             }
         }
