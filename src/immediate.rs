@@ -13,13 +13,13 @@ mod lui {
         )
         .expect("should parse");
 
-        let mut cpu: Cpu = Default::default();
+        let mut vm: VM = Default::default();
 
-        assert_eq!(cpu.register.get(Register::PC), 0);
-        cpu.execute(i).expect("should execute");
+        assert_eq!(vm.cpu.register.get(Register::PC), 0);
+        vm.execute(i).expect("should execute");
 
-        assert_eq!(cpu.register.get(Register::X1), 1312);
-        assert_eq!(cpu.register.get(Register::PC), 4);
+        assert_eq!(vm.cpu.register.get(Register::X1), 1312);
+        assert_eq!(vm.cpu.register.get(Register::PC), 4);
     }
 }
 
@@ -38,13 +38,13 @@ mod auipc {
         )
         .expect("should parse");
 
-        let mut cpu: Cpu = Default::default();
+        let mut vm: VM = Default::default();
 
-        assert_eq!(cpu.register.get(Register::PC), 0);
-        cpu.execute(i).expect("should execute");
+        assert_eq!(vm.cpu.register.get(Register::PC), 0);
+        vm.execute(i).expect("should execute");
 
-        assert_eq!(cpu.register.get(Register::X1), 1312);
-        assert_eq!(cpu.register.get(Register::PC), 4);
+        assert_eq!(vm.cpu.register.get(Register::X1), 1312);
+        assert_eq!(vm.cpu.register.get(Register::PC), 4);
     }
 
     #[test]
@@ -57,12 +57,12 @@ mod auipc {
         )
         .expect("should parse");
 
-        let mut cpu: Cpu = Default::default();
-        cpu.register.set(Register::PC, 12);
+        let mut vm: VM = Default::default();
+        vm.cpu.register.set(Register::PC, 12);
 
-        cpu.execute(i).expect("should execute");
+        vm.execute(i).expect("should execute");
 
-        assert_eq!(cpu.register.get(Register::X1), 25);
-        assert_eq!(cpu.register.get(Register::PC), 16);
+        assert_eq!(vm.cpu.register.get(Register::X1), 25);
+        assert_eq!(vm.cpu.register.get(Register::PC), 16);
     }
 }

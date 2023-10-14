@@ -23,13 +23,26 @@ pub use memory::Memory;
 use risc32i::{instr::instruction::Instruction, instr::operation::Operation, instr::part::Part};
 
 #[derive(Default, Debug)]
-pub struct Cpu {
+pub struct CPU {
     pub register: Registers,
-    pub ram: Memory,
-    pub rom: Memory,
 }
 
-impl Cpu {
+impl CPU {
+    fn increment_pc(&mut self) {
+        self.register.set(
+            Register::PC,
+            self.register.get(Register::PC) + REGISTER_INCREMENT
+        );
+    }
+}
+
+#[derive(Default, Debug)]
+pub struct VM {
+    pub cpu: CPU,
+    pub ram: Memory,
+}
+
+impl VM {
     pub fn execute(&mut self, i: Instruction) -> Result<(), &'static str> {
         let result = match i.opcode {
             Operation::LUI => self.load_upper_immediate(i),
@@ -44,7 +57,7 @@ impl Cpu {
             _ => Err("unknown opcode"),
         };
         if result.is_ok() {
-            self.register.increment(Register::PC);
+            self.cpu.increment_pc();
         }
         result
     }
@@ -64,7 +77,7 @@ impl Cpu {
         let im40 = i.value(Part::Imm40).expect("invalid imm40");
         let im115 = i.value(Part::Imm115).expect("invalid imm115");
         let immediate = (im115 << 5) | im40; // https://stackoverflow.com/a/60239441
-        let address = self.register.get(rs1) as i32 + bitops::sign_extend(immediate, 12);
+        let address = self.cpu.register.get(rs1) as i32 + bitops::sign_extend(immediate, 12);
 
         eprintln!("\t\trs1: {:?}", rs1);
         eprintln!("\t\trs2: {:?}", rs2);
@@ -82,21 +95,21 @@ impl Cpu {
             0b000 => {
                 // SB
                 self.ram
-                    .set_byte_at(address as u32, self.register.get(rs2) as u8)
+                    .set_byte_at(address as u32, self.cpu.register.get(rs2) as u8)
                     .expect("invalid memory access");
                 Ok(())
             }
             0b001 => {
                 // SH
                 self.ram
-                    .set_hw_at(address as u32, self.register.get(rs2) as u16)
+                    .set_hw_at(address as u32, self.cpu.register.get(rs2) as u16)
                     .expect("invalid memory access");
                 Ok(())
             }
             0b010 => {
                 // SW
                 self.ram
-                    .set_word_at(address as u32, self.register.get(rs2))
+                    .set_word_at(address as u32, self.cpu.register.get(rs2))
                     .expect("invalid memory access");
                 Ok(())
             }
@@ -117,7 +130,7 @@ impl Cpu {
             .expect("invalid register");
         let f3 = i.value(Part::Funct3).expect("invalid funct3");
         let immediate = i.value(Part::Imm110).expect("invalid imm110");
-        let address = self.register.get(rs1) as i32 + bitops::sign_extend(immediate, 12);
+        let address = self.cpu.register.get(rs1) as i32 + bitops::sign_extend(immediate, 12);
 
         eprintln!("\t\trsd: {:?}", rsd);
         eprintln!("\t\trs1: {:?}", rs1);
@@ -132,7 +145,7 @@ impl Cpu {
                     .ram
                     .byte_at(address.try_into().expect("invalid address"))
                     .expect("invalid memory access");
-                self.register
+                self.cpu.register
                     .set(rsd, bitops::sign_extend(value as u32, 8) as u32);
                 Ok(())
             }
@@ -142,13 +155,13 @@ impl Cpu {
                     .ram
                     .hw_at(address.try_into().expect("invalid address"))
                     .expect("invalid memory access");
-                self.register
+                self.cpu.register
                     .set(rsd, bitops::sign_extend(value as u32, 16) as u32);
                 Ok(())
             }
             0b010 => {
                 // LW
-                self.register.set(
+                self.cpu.register.set(
                     rsd,
                     self.ram
                         .word_at(address.try_into().expect("invalid address"))
@@ -162,7 +175,7 @@ impl Cpu {
                     .ram
                     .byte_at(address.try_into().expect("invalid address"))
                     .expect("invalid memory access");
-                self.register.set(rsd, value as u32);
+                self.cpu.register.set(rsd, value as u32);
                 Ok(())
             }
             0b101 => {
@@ -171,7 +184,7 @@ impl Cpu {
                     .ram
                     .hw_at(address.try_into().expect("invalid address"))
                     .expect("invalid memory access");
-                self.register.set(rsd, value as u32);
+                self.cpu.register.set(rsd, value as u32);
                 Ok(())
             }
             _ => Err("unknown load instruction"),
@@ -185,13 +198,13 @@ impl Cpu {
             .try_into()
             .expect("invalid register");
         let immediate = i.value(Part::Imm3112).expect("invalid immediate 31:12");
-        let pc = self.register.get(Register::PC);
+        let pc = self.cpu.register.get(Register::PC);
 
         eprintln!("\t\trsd: {:?}", rsd);
         eprintln!("\t\timm: {}", debug::number(immediate, 20));
         eprintln!("\t\t pc: {}", pc);
 
-        self.register.set(
+        self.cpu.register.set(
             rsd,
             (immediate & 0b0000_0000_0000_1111_1111_1111_1111_1111) + pc,
         );
@@ -209,7 +222,7 @@ impl Cpu {
         eprintln!("\t\trsd: {:?}", rsd);
         eprintln!("\t\timm: {}", debug::number(immediate, 20));
 
-        self.register
+        self.cpu.register
             .set(rsd, immediate & 0b0000_0000_0000_1111_1111_1111_1111_1111);
         Ok(())
     }
@@ -226,7 +239,7 @@ impl Cpu {
             .try_into()
             .expect("invalid register");
         let f3 = i.value(Part::Funct3).expect("invalid funct3");
-        let pc = (self.register.get(Register::PC) as i32) - REGISTER_INCREMENT as i32;
+        let pc = (self.cpu.register.get(Register::PC) as i32) - REGISTER_INCREMENT as i32;
 
         eprintln!("\t\t- rs1: {:?}", rs1);
         eprintln!("\t\t- rs2: {:?}", rs2);
@@ -264,43 +277,43 @@ impl Cpu {
         match f3 {
             0b000 => {
                 // BEQ
-                if self.register.get(rs1) == self.register.get(rs2) {
-                    self.register.set(Register::PC, (pc + address) as u32);
+                if self.cpu.register.get(rs1) == self.cpu.register.get(rs2) {
+                    self.cpu.register.set(Register::PC, (pc + address) as u32);
                 }
                 Ok(())
             }
             0b001 => {
                 // BNE
-                if self.register.get(rs1) != self.register.get(rs2) {
-                    self.register.set(Register::PC, (pc + address) as u32);
+                if self.cpu.register.get(rs1) != self.cpu.register.get(rs2) {
+                    self.cpu.register.set(Register::PC, (pc + address) as u32);
                 }
                 Ok(())
             }
             0b100 => {
                 // BLT
-                if (self.register.get(rs1) as i32) < (self.register.get(rs2) as i32) {
-                    self.register.set(Register::PC, (pc + address) as u32);
+                if (self.cpu.register.get(rs1) as i32) < (self.cpu.register.get(rs2) as i32) {
+                    self.cpu.register.set(Register::PC, (pc + address) as u32);
                 }
                 Ok(())
             }
             0b110 => {
                 // BLTU
-                if self.register.get(rs1) < self.register.get(rs2) {
-                    self.register.set(Register::PC, (pc + address) as u32);
+                if self.cpu.register.get(rs1) < self.cpu.register.get(rs2) {
+                    self.cpu.register.set(Register::PC, (pc + address) as u32);
                 }
                 Ok(())
             }
             0b101 => {
                 // BGE
-                if (self.register.get(rs1) as i32) > (self.register.get(rs2) as i32) {
-                    self.register.set(Register::PC, (pc + address) as u32);
+                if (self.cpu.register.get(rs1) as i32) > (self.cpu.register.get(rs2) as i32) {
+                    self.cpu.register.set(Register::PC, (pc + address) as u32);
                 }
                 Ok(())
             }
             0b111 => {
                 // BGEU
-                if self.register.get(rs1) > self.register.get(rs2) {
-                    self.register.set(Register::PC, (pc + address) as u32);
+                if self.cpu.register.get(rs1) > self.cpu.register.get(rs2) {
+                    self.cpu.register.set(Register::PC, (pc + address) as u32);
                 }
                 Ok(())
             }
@@ -321,9 +334,9 @@ impl Cpu {
             .expect("invalid register");
         let immediate = i.value(Part::Imm110).expect("invalid immediate value 11:0");
 
-        let pc = self.register.get(Register::PC);
+        let pc = self.cpu.register.get(Register::PC);
         let address =
-            (self.register.get(rs1) + immediate) & 0b0111_1111_1111_1111_1111_1111_1111_1111;
+            (self.cpu.register.get(rs1) + immediate) & 0b0111_1111_1111_1111_1111_1111_1111_1111;
 
         eprintln!("\t\t- rsd: {:?}", rsd);
         eprintln!("\t\t- rs1: {:?}", rs1);
@@ -331,8 +344,8 @@ impl Cpu {
         eprintln!("\t\t- imm: {}", debug::number(immediate, 12));
         eprintln!("\t\t- adr: {}", debug::number(address, 12));
 
-        self.register.set(rsd, pc + REGISTER_INCREMENT);
-        self.register
+        self.cpu.register.set(rsd, pc + REGISTER_INCREMENT);
+        self.cpu.register
             .set(Register::PC, address - REGISTER_INCREMENT); // Because on Ok PC gets incremented
         Ok(())
     }
@@ -348,9 +361,9 @@ impl Cpu {
             | (i.value(Part::Imm1912).expect("invalid immediate 1912") << 11)
             | (i.value(Part::B11j).expect("invalid b11j") << 10)
             | (i.value(Part::Imm101).expect("invalid immediate 10:1") << 0);
-        let pc = self.register.get(Register::PC);
+        let pc = self.cpu.register.get(Register::PC);
         if rsd != Register::X0 {
-            self.register.set(rsd, pc + REGISTER_INCREMENT);
+            self.cpu.register.set(rsd, pc + REGISTER_INCREMENT);
         }
 
         eprintln!("\t\t- rsd: {:?}", rsd);
@@ -376,7 +389,7 @@ impl Cpu {
         let immediate = bitops::sign_extend(immediate, 20);
         eprintln!("\t\t- sim: {}", debug::number(immediate, 20));
 
-        self.register
+        self.cpu.register
             .set(Register::PC, (pc as i32 + immediate) as u32);
         Ok(())
     }
@@ -412,23 +425,23 @@ impl Cpu {
         match f3 {
             0b000 => {
                 // ADDI
-                self.register.set(
+                self.cpu.register.set(
                     rsd,
-                    (self.register.get(rs1) as i32 + bitops::sign_extend(immediate, 12)) as u32,
+                    (self.cpu.register.get(rs1) as i32 + bitops::sign_extend(immediate, 12)) as u32,
                 );
                 Ok(())
             }
             0b010 => {
                 // SLTI
-                let a = self.register.get(rs1) as i32;
+                let a = self.cpu.register.get(rs1) as i32;
                 let b = bitops::sign_extend(immediate, 12);
                 let cmp = if a < b { 1 } else { 0 };
-                self.register.set(rsd, cmp);
+                self.cpu.register.set(rsd, cmp);
                 Ok(())
             }
             0b011 => {
                 // SLTIU
-                let a = self.register.get(rs1);
+                let a = self.cpu.register.get(rs1);
                 let b = immediate;
                 let cmp = if immediate == 1 {
                     if a == 0 {
@@ -441,30 +454,30 @@ impl Cpu {
                 } else {
                     0
                 };
-                self.register.set(rsd, cmp);
+                self.cpu.register.set(rsd, cmp);
                 Ok(())
             }
             0b100 => {
                 // XORI
-                let reg = self.register.get(rs1);
+                let reg = self.cpu.register.get(rs1);
                 let simm = bitops::sign_extend(immediate, 12);
                 let result = if simm == -1 { !reg } else { reg ^ immediate };
-                self.register.set(rsd, result);
+                self.cpu.register.set(rsd, result);
                 Ok(())
             }
             0b110 => {
                 // ORI
-                self.register.set(
+                self.cpu.register.set(
                     rsd,
-                    (self.register.get(rs1) as i32 | bitops::sign_extend(immediate, 12)) as u32,
+                    (self.cpu.register.get(rs1) as i32 | bitops::sign_extend(immediate, 12)) as u32,
                 );
                 Ok(())
             }
             0b111 => {
                 // XORI
-                self.register.set(
+                self.cpu.register.set(
                     rsd,
-                    (self.register.get(rs1) as i32 & bitops::sign_extend(immediate, 12)) as u32,
+                    (self.cpu.register.get(rs1) as i32 & bitops::sign_extend(immediate, 12)) as u32,
                 );
                 Ok(())
             }
@@ -500,18 +513,18 @@ impl Cpu {
         match (f3, shift) {
             (0b001, 0b0000000) => {
                 // SLLI
-                self.register.set(rsd, self.register.get(rs1) << immediate);
+                self.cpu.register.set(rsd, self.cpu.register.get(rs1) << immediate);
                 Ok(())
             }
             (0b101, 0b0000000) => {
                 // SRLI
-                self.register.set(rsd, self.register.get(rs1) >> immediate);
+                self.cpu.register.set(rsd, self.cpu.register.get(rs1) >> immediate);
                 Ok(())
             }
             (0b101, 0b0100000) => {
                 // SRAI: TODO: is this right?
-                self.register
-                    .set(rsd, self.register.get(rs1).wrapping_shr(immediate));
+                self.cpu.register
+                    .set(rsd, self.cpu.register.get(rs1).wrapping_shr(immediate));
                 Ok(())
             }
             _ => Err("invalid immediate math shift operation"),
@@ -545,29 +558,29 @@ impl Cpu {
 
         match (f3, f7) {
             (0b000, 0b0000000) => {
-                self.register
-                    .set(rsd, self.register.get(rs1) + self.register.get(rs2));
+                self.cpu.register
+                    .set(rsd, self.cpu.register.get(rs1) + self.cpu.register.get(rs2));
                 Ok(())
             }
             (0b000, 0b0100000) => {
                 // TODO: Overflows are ignored and the low XLEN bits of results are written to the destination rd
-                self.register
-                    .set(rsd, self.register.get(rs1) - self.register.get(rs2));
+                self.cpu.register
+                    .set(rsd, self.cpu.register.get(rs1) - self.cpu.register.get(rs2));
                 Ok(())
             }
             (0b010, 0b0000000) => {
                 // SLT
-                let a = self.register.get(rs1) as i32;
-                let b = self.register.get(rs2) as i32;
+                let a = self.cpu.register.get(rs1) as i32;
+                let b = self.cpu.register.get(rs2) as i32;
                 let cmp = if a < b { 1 } else { 0 };
-                self.register.set(rsd, cmp);
+                self.cpu.register.set(rsd, cmp);
                 Ok(())
             }
             (0b011, 0b0000000) => {
                 // SLTU
                 let is_zero_register = Register::X0 == rs1;
-                let a = self.register.get(rs1);
-                let b = self.register.get(rs2);
+                let a = self.cpu.register.get(rs1);
+                let b = self.cpu.register.get(rs2);
                 let cmp = if is_zero_register {
                     if b != 0 {
                         1
@@ -579,46 +592,46 @@ impl Cpu {
                 } else {
                     0
                 };
-                self.register.set(rsd, cmp);
+                self.cpu.register.set(rsd, cmp);
                 Ok(())
             }
             (0b001, 0b0000000) => {
-                self.register.set(
+                self.cpu.register.set(
                     rsd,
-                    self.register.get(rs1)
-                        << (self.register.get(rs2) & 0b000_0000_0000_0000_0000_0000_0000_0001_1111),
+                    self.cpu.register.get(rs1)
+                        << (self.cpu.register.get(rs2) & 0b000_0000_0000_0000_0000_0000_0000_0001_1111),
                 );
                 Ok(())
             }
             (0b101, 0b0000000) => {
                 // SRL - logical right shift
-                self.register.set(
+                self.cpu.register.set(
                     rsd,
-                    self.register.get(rs1)
-                        >> (self.register.get(rs2) & 0b000_0000_0000_0000_0000_0000_0000_0001_1111),
+                    self.cpu.register.get(rs1)
+                        >> (self.cpu.register.get(rs2) & 0b000_0000_0000_0000_0000_0000_0000_0001_1111),
                 );
                 Ok(())
             }
             (0b101, 0b0100000) => {
                 // SRA - arithmetic right shift
-                let a = self.register.get(rs1);
-                let b = self.register.get(rs2) & 0b000_0000_0000_0000_0000_0000_0000_0001_1111;
-                self.register.set(rsd, a.wrapping_shr(b)); // TODO: is this right?
+                let a = self.cpu.register.get(rs1);
+                let b = self.cpu.register.get(rs2) & 0b000_0000_0000_0000_0000_0000_0000_0001_1111;
+                self.cpu.register.set(rsd, a.wrapping_shr(b)); // TODO: is this right?
                 Ok(())
             }
             (0b100, 0b0000000) => {
-                self.register
-                    .set(rsd, self.register.get(rs1) ^ self.register.get(rs2));
+                self.cpu.register
+                    .set(rsd, self.cpu.register.get(rs1) ^ self.cpu.register.get(rs2));
                 Ok(())
             }
             (0b110, 0b0000000) => {
-                self.register
-                    .set(rsd, self.register.get(rs1) | self.register.get(rs2));
+                self.cpu.register
+                    .set(rsd, self.cpu.register.get(rs1) | self.cpu.register.get(rs2));
                 Ok(())
             }
             (0b111, 0b0000000) => {
-                self.register
-                    .set(rsd, self.register.get(rs1) & self.register.get(rs2));
+                self.cpu.register
+                    .set(rsd, self.cpu.register.get(rs1) & self.cpu.register.get(rs2));
                 Ok(())
             }
             _ => {
@@ -651,10 +664,6 @@ impl Registers {
 
     pub fn get(&self, key: Register) -> u32 {
         self.data[key as usize]
-    }
-
-    pub fn increment(&mut self, key: Register) {
-        self.data[key as usize] += REGISTER_INCREMENT; // TODO: For PC only?
     }
 }
 

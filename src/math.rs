@@ -23,17 +23,17 @@ mod r2r {
         )
         .expect("should parse");
 
-        let mut cpu: Cpu = Default::default();
-        cpu.register.set(Register::X12, t.rs1);
-        cpu.register.set(Register::X13, t.rs2);
+        let mut vm: VM = Default::default();
+        vm.cpu.register.set(Register::X12, t.rs1);
+        vm.cpu.register.set(Register::X13, t.rs2);
 
-        assert_eq!(cpu.register.get(Register::PC), 0);
-        cpu.execute(i).expect("should execute");
+        assert_eq!(vm.cpu.register.get(Register::PC), 0);
+        vm.execute(i).expect("should execute");
 
-        assert_eq!(cpu.register.get(Register::X12), t.rs1);
-        assert_eq!(cpu.register.get(Register::X13), t.rs2);
-        assert_eq!(cpu.register.get(Register::X16), t.expected);
-        assert_eq!(cpu.register.get(Register::PC), 4);
+        assert_eq!(vm.cpu.register.get(Register::X12), t.rs1);
+        assert_eq!(vm.cpu.register.get(Register::X13), t.rs2);
+        assert_eq!(vm.cpu.register.get(Register::X16), t.expected);
+        assert_eq!(vm.cpu.register.get(Register::PC), 4);
     }
 
     #[test]

@@ -38,15 +38,15 @@ fn mkinstr(test: &Test) -> Instruction {
 #[cfg(test)]
 fn apply(test: Test) {
     let i = mkinstr(&test);
-    let mut cpu: Cpu = Default::default();
+    let mut vm: VM = Default::default();
 
-    cpu.register.set(Register::X12, test.left);
-    cpu.register.set(Register::X13, test.right);
+    vm.cpu.register.set(Register::X12, test.left);
+    vm.cpu.register.set(Register::X13, test.right);
 
-    assert_eq!(cpu.register.get(Register::PC), 0);
-    cpu.execute(i).expect("should execute");
+    assert_eq!(vm.cpu.register.get(Register::PC), 0);
+    vm.execute(i).expect("should execute");
 
-    assert_eq!(cpu.register.get(Register::PC), test.expected);
+    assert_eq!(vm.cpu.register.get(Register::PC), test.expected);
 }
 
 #[cfg(test)]

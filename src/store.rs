@@ -18,17 +18,17 @@ mod byte {
 
         let expected = 161;
 
-        let mut cpu: Cpu = Default::default();
-        cpu.register.set(Register::X12, 1);
-        cpu.register.set(Register::X13, expected);
+        let mut vm: VM = Default::default();
+        vm.cpu.register.set(Register::X12, 1);
+        vm.cpu.register.set(Register::X13, expected);
 
-        assert_eq!(cpu.register.get(Register::PC), 0);
-        cpu.execute(i).expect("should execute");
+        assert_eq!(vm.cpu.register.get(Register::PC), 0);
+        vm.execute(i).expect("should execute");
 
-        assert_eq!(cpu.register.get(Register::X13), expected);
-        assert_eq!(cpu.register.get(Register::X12), 1);
-        assert_eq!(cpu.register.get(Register::PC), 4);
-        assert_eq!(cpu.ram.byte_at(14).expect("memory access") as u32, expected);
+        assert_eq!(vm.cpu.register.get(Register::X13), expected);
+        assert_eq!(vm.cpu.register.get(Register::X12), 1);
+        assert_eq!(vm.cpu.register.get(Register::PC), 4);
+        assert_eq!(vm.ram.byte_at(14).expect("memory access") as u32, expected);
     }
 
     #[test]
@@ -46,18 +46,18 @@ mod byte {
 
         let expected = 161;
 
-        let mut cpu: Cpu = Default::default();
-        cpu.register.set(Register::X12, 161 + 32);
-        cpu.register.set(Register::X13, expected);
+        let mut vm: VM = Default::default();
+        vm.cpu.register.set(Register::X12, 161 + 32);
+        vm.cpu.register.set(Register::X13, expected);
 
-        assert_eq!(cpu.register.get(Register::PC), 0);
-        cpu.execute(i).expect("should execute");
+        assert_eq!(vm.cpu.register.get(Register::PC), 0);
+        vm.execute(i).expect("should execute");
 
-        assert_eq!(cpu.register.get(Register::X13), expected);
-        assert_eq!(cpu.register.get(Register::X12), 161 + 32);
-        assert_eq!(cpu.register.get(Register::PC), 4);
+        assert_eq!(vm.cpu.register.get(Register::X13), expected);
+        assert_eq!(vm.cpu.register.get(Register::X12), 161 + 32);
+        assert_eq!(vm.cpu.register.get(Register::PC), 4);
         assert_eq!(
-            cpu.ram.byte_at(161).expect("memory access") as u32,
+            vm.ram.byte_at(161).expect("memory access") as u32,
             expected
         );
     }
@@ -83,17 +83,17 @@ mod half_word {
 
         let expected = 1312;
 
-        let mut cpu: Cpu = Default::default();
-        cpu.register.set(Register::X12, 1);
-        cpu.register.set(Register::X13, expected);
+        let mut vm: VM = Default::default();
+        vm.cpu.register.set(Register::X12, 1);
+        vm.cpu.register.set(Register::X13, expected);
 
-        assert_eq!(cpu.register.get(Register::PC), 0);
-        cpu.execute(i).expect("should execute");
+        assert_eq!(vm.cpu.register.get(Register::PC), 0);
+        vm.execute(i).expect("should execute");
 
-        assert_eq!(cpu.register.get(Register::X13), expected);
-        assert_eq!(cpu.register.get(Register::X12), 1);
-        assert_eq!(cpu.register.get(Register::PC), 4);
-        assert_eq!(cpu.ram.hw_at(14).expect("memory access") as u32, expected);
+        assert_eq!(vm.cpu.register.get(Register::X13), expected);
+        assert_eq!(vm.cpu.register.get(Register::X12), 1);
+        assert_eq!(vm.cpu.register.get(Register::PC), 4);
+        assert_eq!(vm.ram.hw_at(14).expect("memory access") as u32, expected);
     }
 
     #[test]
@@ -111,17 +111,17 @@ mod half_word {
 
         let expected = 1312;
 
-        let mut cpu: Cpu = Default::default();
-        cpu.register.set(Register::X12, 161 + 32);
-        cpu.register.set(Register::X13, expected);
+        let mut vm: VM = Default::default();
+        vm.cpu.register.set(Register::X12, 161 + 32);
+        vm.cpu.register.set(Register::X13, expected);
 
-        assert_eq!(cpu.register.get(Register::PC), 0);
-        cpu.execute(i).expect("should execute");
+        assert_eq!(vm.cpu.register.get(Register::PC), 0);
+        vm.execute(i).expect("should execute");
 
-        assert_eq!(cpu.register.get(Register::X13), expected);
-        assert_eq!(cpu.register.get(Register::X12), 161 + 32);
-        assert_eq!(cpu.register.get(Register::PC), 4);
-        assert_eq!(cpu.ram.hw_at(161).expect("memory access") as u32, expected);
+        assert_eq!(vm.cpu.register.get(Register::X13), expected);
+        assert_eq!(vm.cpu.register.get(Register::X12), 161 + 32);
+        assert_eq!(vm.cpu.register.get(Register::PC), 4);
+        assert_eq!(vm.ram.hw_at(161).expect("memory access") as u32, expected);
     }
 }
 
@@ -145,17 +145,17 @@ mod word {
 
         let expected = 1611312;
 
-        let mut cpu: Cpu = Default::default();
-        cpu.register.set(Register::X12, 1);
-        cpu.register.set(Register::X13, expected);
+        let mut vm: VM = Default::default();
+        vm.cpu.register.set(Register::X12, 1);
+        vm.cpu.register.set(Register::X13, expected);
 
-        assert_eq!(cpu.register.get(Register::PC), 0);
-        cpu.execute(i).expect("should execute");
+        assert_eq!(vm.cpu.register.get(Register::PC), 0);
+        vm.execute(i).expect("should execute");
 
-        assert_eq!(cpu.register.get(Register::X13), expected);
-        assert_eq!(cpu.register.get(Register::X12), 1);
-        assert_eq!(cpu.register.get(Register::PC), 4);
-        assert_eq!(cpu.ram.word_at(14).expect("memory access") as u32, expected);
+        assert_eq!(vm.cpu.register.get(Register::X13), expected);
+        assert_eq!(vm.cpu.register.get(Register::X12), 1);
+        assert_eq!(vm.cpu.register.get(Register::PC), 4);
+        assert_eq!(vm.ram.word_at(14).expect("memory access") as u32, expected);
     }
 
     #[test]
@@ -173,18 +173,18 @@ mod word {
 
         let expected = 1611312;
 
-        let mut cpu: Cpu = Default::default();
-        cpu.register.set(Register::X12, 161 + 32);
-        cpu.register.set(Register::X13, expected);
+        let mut vm: VM = Default::default();
+        vm.cpu.register.set(Register::X12, 161 + 32);
+        vm.cpu.register.set(Register::X13, expected);
 
-        assert_eq!(cpu.register.get(Register::PC), 0);
-        cpu.execute(i).expect("should execute");
+        assert_eq!(vm.cpu.register.get(Register::PC), 0);
+        vm.execute(i).expect("should execute");
 
-        assert_eq!(cpu.register.get(Register::X13), expected);
-        assert_eq!(cpu.register.get(Register::X12), 161 + 32);
-        assert_eq!(cpu.register.get(Register::PC), 4);
+        assert_eq!(vm.cpu.register.get(Register::X13), expected);
+        assert_eq!(vm.cpu.register.get(Register::X12), 161 + 32);
+        assert_eq!(vm.cpu.register.get(Register::PC), 4);
         assert_eq!(
-            cpu.ram.word_at(161).expect("memory access") as u32,
+            vm.ram.word_at(161).expect("memory access") as u32,
             expected
         );
     }

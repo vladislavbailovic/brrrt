@@ -16,13 +16,13 @@ mod immediate {
         )
         .expect("should parse");
 
-        let mut cpu: Cpu = Default::default();
+        let mut vm: VM = Default::default();
 
-        assert_eq!(cpu.register.get(Register::PC), 0);
-        cpu.execute(i).expect("should execute");
+        assert_eq!(vm.cpu.register.get(Register::PC), 0);
+        vm.execute(i).expect("should execute");
 
-        assert_eq!(cpu.register.get(Register::X1), 4);
-        assert_eq!(cpu.register.get(Register::PC), 17);
+        assert_eq!(vm.cpu.register.get(Register::X1), 4);
+        assert_eq!(vm.cpu.register.get(Register::PC), 17);
     }
 
     #[test]
@@ -38,13 +38,13 @@ mod immediate {
         )
         .expect("should parse");
 
-        let mut cpu: Cpu = Default::default();
+        let mut vm: VM = Default::default();
 
-        cpu.register.set(Register::PC, 12);
-        cpu.execute(i).expect("should execute");
+        vm.cpu.register.set(Register::PC, 12);
+        vm.execute(i).expect("should execute");
 
-        assert_eq!(cpu.register.get(Register::X1), 16);
-        assert_eq!(cpu.register.get(Register::PC), 29);
+        assert_eq!(vm.cpu.register.get(Register::X1), 16);
+        assert_eq!(vm.cpu.register.get(Register::PC), 29);
     }
 
     #[test]
@@ -60,13 +60,13 @@ mod immediate {
         )
         .expect("should parse");
 
-        let mut cpu: Cpu = Default::default();
+        let mut vm: VM = Default::default();
 
-        assert_eq!(cpu.register.get(Register::PC), 0);
-        cpu.execute(i).expect("should execute");
+        assert_eq!(vm.cpu.register.get(Register::PC), 0);
+        vm.execute(i).expect("should execute");
 
-        assert_eq!(cpu.register.get(Register::X0), 0);
-        assert_eq!(cpu.register.get(Register::PC), 17);
+        assert_eq!(vm.cpu.register.get(Register::X0), 0);
+        assert_eq!(vm.cpu.register.get(Register::PC), 17);
     }
 }
 
@@ -87,13 +87,13 @@ mod register {
         )
         .expect("should parse");
 
-        let mut cpu: Cpu = Default::default();
+        let mut vm: VM = Default::default();
 
-        assert_eq!(cpu.register.get(Register::PC), 0);
-        cpu.execute(i).expect("should execute");
+        assert_eq!(vm.cpu.register.get(Register::PC), 0);
+        vm.execute(i).expect("should execute");
 
-        assert_eq!(cpu.register.get(Register::X1), 4);
-        assert_eq!(cpu.register.get(Register::PC), 13);
+        assert_eq!(vm.cpu.register.get(Register::X1), 4);
+        assert_eq!(vm.cpu.register.get(Register::PC), 13);
     }
 
     #[test]
@@ -108,12 +108,12 @@ mod register {
         )
         .expect("should parse");
 
-        let mut cpu: Cpu = Default::default();
+        let mut vm: VM = Default::default();
 
-        cpu.register.set(Register::PC, 100);
-        cpu.execute(i).expect("should execute");
+        vm.cpu.register.set(Register::PC, 100);
+        vm.execute(i).expect("should execute");
 
-        assert_eq!(cpu.register.get(Register::X1), 104);
-        assert_eq!(cpu.register.get(Register::PC), 13);
+        assert_eq!(vm.cpu.register.get(Register::X1), 104);
+        assert_eq!(vm.cpu.register.get(Register::PC), 13);
     }
 }
