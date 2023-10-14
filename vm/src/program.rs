@@ -38,6 +38,12 @@ impl Program {
         Ok(())
     }
 
+    pub fn peek(&self, vm: &VM) -> Result<Instruction, &str> {
+        let pc = vm.cpu.register.get(Register::PC);
+        let code = self.rom.word_at(pc).expect("invalid memory access");
+        Instruction::parse(code)
+    }
+
     pub fn step(&self, vm: &mut VM, _iteration: usize) -> Result<(), &str> {
         let pc = vm.cpu.register.get(Register::PC);
         let code = self.rom.word_at(pc).expect("invalid memory access");
