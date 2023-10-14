@@ -56,10 +56,7 @@ mod byte {
         assert_eq!(vm.cpu.register.get(Register::X13), expected);
         assert_eq!(vm.cpu.register.get(Register::X12), 161 + 32);
         assert_eq!(vm.cpu.register.get(Register::PC), 4);
-        assert_eq!(
-            vm.ram.byte_at(161).expect("memory access") as u32,
-            expected
-        );
+        assert_eq!(vm.ram.byte_at(161).expect("memory access") as u32, expected);
     }
 }
 
@@ -183,9 +180,6 @@ mod word {
         assert_eq!(vm.cpu.register.get(Register::X13), expected);
         assert_eq!(vm.cpu.register.get(Register::X12), 161 + 32);
         assert_eq!(vm.cpu.register.get(Register::PC), 4);
-        assert_eq!(
-            vm.ram.word_at(161).expect("memory access") as u32,
-            expected
-        );
+        assert_eq!(vm.ram.word_at(161).expect("memory access") as u32, expected);
     }
 }

@@ -1,10 +1,6 @@
 use brrrt::{
-    debug,
-    risc32i::{
-        instr::builder::Builder, instr::instruction::Instruction, instr::operation::*,
-        instr::part::Part,
-    },
-    Cpu, Register,
+    risc32i::{instr::builder::Builder, instr::operation::*, instr::part::Part},
+    Program, Register, VM,
 };
 
 fn from_builder() -> Vec<u32> {
@@ -31,42 +27,18 @@ fn from_builder() -> Vec<u32> {
 }
 
 fn main() -> Result<(), String> {
-    let instructions = from_builder();
-
-    let mut cpu: Cpu = Default::default();
-    for (n, x) in instructions.iter().enumerate() {
-        eprintln!("{n}: {}", debug::binary(*x, 32));
-        cpu.rom
-            .set_word_at((n * 4) as u32, *x)
-            .expect("invalid memory access");
-    }
+    let mut vm: VM = Default::default();
+    let program = Program::from_asm(&from_builder());
 
     eprintln!("-------------------------------------");
 
-    for x in 0..100 {
-        let pc = cpu.register.get(Register::PC);
-        let code = cpu.rom.word_at(pc).expect("invalid memory access");
-        eprintln!("iteration {} :: PC: {}", x, pc);
-
-        let inst = Instruction::parse(code).expect("should parse");
-        eprintln!("{x}: {}", debug::binary(code, 32));
-        eprintln!("\t{:?}", inst);
-
-        if cpu.execute(inst).is_err() {
-            eprintln!("Error!");
-            break;
-        }
-        if (cpu.register.get(Register::PC) / 4) as usize == instructions.len() {
-            break;
-        }
-        eprintln!("");
-    }
+    program.run(&mut vm)?;
 
     eprintln!("-------------------------------------");
-    eprintln!("X01: {} (expected 13)", cpu.register.get(Register::X1));
-    eprintln!("X02: {} (expected 25)", cpu.register.get(Register::X2));
-    eprintln!("X16: {} (expected 0)", cpu.register.get(Register::X16));
-    eprintln!("M@0: {} (expected 25)", cpu.ram.byte_at(0).unwrap());
+    eprintln!("X01: {} (expected 13)", vm.cpu.register.get(Register::X1));
+    eprintln!("X02: {} (expected 25)", vm.cpu.register.get(Register::X2));
+    eprintln!("X16: {} (expected 0)", vm.cpu.register.get(Register::X16));
+    eprintln!("M@0: {} (expected 25)", vm.ram.byte_at(0).unwrap());
 
     Ok(())
 }
