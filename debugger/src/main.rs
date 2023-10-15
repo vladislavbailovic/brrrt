@@ -15,7 +15,7 @@ fn load_program(path: &str) -> Program {
 
 fn main() -> Result<(), String> {
     let mut vm: VM = Default::default();
-    let program = load_program("asm/jump.bin");
+    let program = load_program("asm/loop2.bin");
 
     let registers = &[Register::X0, Register::X1, Register::X2, Register::X3];
 
