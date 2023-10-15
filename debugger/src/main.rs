@@ -1,8 +1,9 @@
 use brrrt_vm::{debug, Program, Register, VM};
+use std::{fs, io};
 
 fn load_program(path: &str) -> Program {
     let mut prg: Program = Default::default();
-    let src = std::fs::read(path)
+    let src = fs::read(path)
         .expect("Unable to read file")
         .into_iter()
         .enumerate();
@@ -18,6 +19,7 @@ fn main() -> Result<(), String> {
 
     let registers = &[Register::X0, Register::X1, Register::X2, Register::X3];
 
+    let mut render_memory = true;
     loop {
         let instr = program.peek(&vm)?;
         eprintln!(
@@ -34,23 +36,39 @@ fn main() -> Result<(), String> {
         eprintln!("Next: {:?}", instr);
         eprintln!("Raw: {}", debug::number(instr.raw, 32));
         program.step(&mut vm, 0)?;
-        eprintln!("step!");
+
         if program.is_done(&vm) {
             break;
         }
+
+        let mut input = String::new();
+        if io::stdin().read_line(&mut input).is_err() {
+            continue;
+        }
+        match input.chars().next() {
+            Some('s') | Some('n') => continue,
+            Some('q') => {
+                render_memory = false;
+                break;
+            }
+            _ => continue,
+        }
     }
 
-    for pos in 0..24 {
-        if pos > 0 && pos % 4 == 0 {
-            eprintln!();
+    if render_memory {
+        eprintln!();
+        for pos in 0..24 {
+            if pos > 0 && pos % 4 == 0 {
+                eprintln!();
+            }
+            eprint!(
+                "{:02}: {: <18}",
+                pos,
+                debug::number(vm.ram.byte_at(pos)? as u32, 8)
+            );
         }
-        eprint!(
-            "{:02}: {: <18}",
-            pos,
-            debug::number(vm.ram.byte_at(pos)? as u32, 8)
-        );
+        eprintln!();
     }
-    eprintln!();
 
     Ok(())
 }
