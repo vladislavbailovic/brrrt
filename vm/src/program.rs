@@ -24,12 +24,19 @@ impl Program {
         prg
     }
 
+    pub fn write(&mut self, pos: u32, byte: u8) {
+        self.rom
+            .set_byte_at(pos, byte)
+            .expect("Invalid memory access");
+        self.end = (pos / 4) as usize + 1;
+    }
+
     pub fn is_done(&self, vm: &VM) -> bool {
         (vm.cpu.register.get(Register::PC) / REGISTER_INCREMENT) as usize == self.end
     }
 
     pub fn run(&self, vm: &mut VM) -> Result<(), String> {
-        for x in 0..100 {
+        for x in 0..self.end {
             self.step(vm, x)?;
             if self.is_done(vm) {
                 break;

@@ -1,16 +1,20 @@
 use brrrt_vm::{debug, Program, Register, VM};
 
-/*
-    // https://riscvasm.lucasteske.dev
-    addi x1, x0, 13
-    addi x2, x0, 12
-    j end
-    addi x2, x0, 161
-    end: sw x2, 0(x16)
-*/
+fn load_program(path: &str) -> Program {
+    let mut prg: Program = Default::default();
+    let src = std::fs::read(path)
+        .expect("Unable to read file")
+        .into_iter()
+        .enumerate();
+    for (i, x) in src {
+        prg.write(i as u32, x);
+    }
+    prg
+}
+
 fn main() -> Result<(), String> {
     let mut vm: VM = Default::default();
-    let program = Program::from_asm(&[0x00d00093, 0x00c00113, 0x0080006f, 0x0a100113, 0x00282023]);
+    let program = load_program("asm/jump.bin");
 
     let registers = &[Register::X0, Register::X1, Register::X2, Register::X3];
 
@@ -28,7 +32,7 @@ fn main() -> Result<(), String> {
             );
         }
         eprintln!("Next: {:?}", instr);
-        eprintln!("Raw: {}", debug::binary(instr.raw, 32));
+        eprintln!("Raw: {}", debug::number(instr.raw, 32));
         program.step(&mut vm, 0)?;
         eprintln!("step!");
         if program.is_done(&vm) {
@@ -36,18 +40,17 @@ fn main() -> Result<(), String> {
         }
     }
 
-    let mut pos = 0;
-    for i in 0..6 {
-        for j in 0..4 {
-            eprint!(
-                "{:02}: {: <18}",
-                pos,
-                debug::number(vm.ram.byte_at(pos)? as u32, 8)
-            );
-            pos += 1;
+    for pos in 0..24 {
+        if pos > 0 && pos % 4 == 0 {
+            eprintln!();
         }
-        eprintln!();
+        eprint!(
+            "{:02}: {: <18}",
+            pos,
+            debug::number(vm.ram.byte_at(pos)? as u32, 8)
+        );
     }
+    eprintln!();
 
     Ok(())
 }
