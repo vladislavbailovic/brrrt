@@ -15,14 +15,13 @@ fn load_program(path: &str) -> Program {
 
 fn main() -> Result<(), String> {
     let mut vm: VM = Default::default();
-    let program = load_program("asm/loop2.bin");
+    let program = load_program("asm/simple.bin");
 
     let registers = &[Register::X0, Register::X1, Register::X2, Register::X3];
 
     let mut quit = false;
     while !quit {
         loop {
-            let instr = program.peek(&vm)?;
             eprintln!(
                 "PC: {}",
                 debug::number(vm.cpu.register.get(Register::PC), 32)
@@ -34,8 +33,11 @@ fn main() -> Result<(), String> {
                     debug::number(vm.cpu.register.get(*reg), 32)
                 );
             }
-            eprintln!("Next: {:?}", instr);
-            eprintln!("Raw: {}", debug::number(instr.raw, 32));
+            if !program.is_done(&vm) {
+                let instr = program.peek(&vm)?;
+                eprintln!("Next: {:?}", instr);
+                eprintln!("Raw: {}", debug::number(instr.raw, 32));
+            }
 
             let mut input = String::new();
             if io::stdin().read_line(&mut input).is_err() {
