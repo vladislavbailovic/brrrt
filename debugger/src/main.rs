@@ -20,7 +20,6 @@ fn main() -> Result<(), String> {
     let registers = &[Register::X0, Register::X1, Register::X2, Register::X3];
 
     let mut quit = false;
-    let mut render_memory = true;
     while !quit {
         loop {
             let instr = program.peek(&vm)?;
@@ -50,7 +49,6 @@ fn main() -> Result<(), String> {
                 }
                 Some('q') => {
                     quit = true;
-                    render_memory = false;
                     break;
                 }
                 Some('\n') => {
@@ -66,29 +64,30 @@ fn main() -> Result<(), String> {
             break;
         }
 
-        program.step(&mut vm, 0)?;
-
-        if program.is_done(&vm) {
-            break;
+        if !program.is_done(&vm) {
+            program.step(&mut vm, 0)?;
         }
-    }
-
-    if render_memory {
-        eprintln!();
-        for pos in 0..24 {
-            if pos > 0 && pos % 4 == 0 {
-                eprintln!();
-            }
-            eprint!(
-                "{:02}: {: <18}",
-                pos,
-                debug::number(vm.ram.byte_at(pos)? as u32, 8)
-            );
-        }
-        eprintln!();
     }
 
     Ok(())
+}
+
+fn show_memory(vm: &VM) {
+    eprintln!();
+    for pos in 0..24 {
+        if pos > 0 && pos % 4 == 0 {
+            eprintln!();
+        }
+        eprint!(
+            "{:02}: {: <18}",
+            pos,
+            debug::number(
+                vm.ram.byte_at(pos).expect("invalid memory access") as u32,
+                8
+            )
+        );
+    }
+    eprintln!();
 }
 
 fn apply_command(input: &str, vm: &mut VM) {
@@ -104,6 +103,10 @@ fn apply_command(input: &str, vm: &mut VM) {
             vm.ram
                 .set_byte_at(address, byte)
                 .expect("invalid memory access");
+            show_memory(vm);
+        }
+        Command::ShowMemory => {
+            show_memory(vm);
         }
     }
 }
@@ -112,6 +115,7 @@ fn apply_command(input: &str, vm: &mut VM) {
 enum Command {
     SetRegister(Register, u32),
     SetMemory(u32, u8),
+    ShowMemory,
 }
 
 fn parse_command(input: &str) -> Option<Command> {
@@ -157,17 +161,20 @@ fn parse_command(input: &str) -> Option<Command> {
             Some(Token::At) => {
                 let address = match t.next() {
                     Some(Token::Number(n)) => Some(n),
-                    _ => None,
+                    None => None,
+                    _ => {
+                        return None;
+                    }
                 };
-                if address.is_none() {
-                    return None;
-                }
                 let byte = match t.next() {
                     Some(Token::Number(n)) => Some(n as u8),
-                    _ => None,
+                    None => None,
+                    _ => {
+                        return None;
+                    }
                 };
-                if byte.is_none() {
-                    return None;
+                if address.is_none() && byte.is_none() {
+                    return Some(Command::ShowMemory);
                 }
                 return Some(Command::SetMemory(address.unwrap(), byte.unwrap()));
             }
@@ -307,5 +314,41 @@ mod test {
         } else {
             assert!(false, "unknown command");
         }
+    }
+
+    #[test]
+    fn parser_parses_memory_show_command() {
+        let cmd = parse_command("!@");
+
+        assert!(cmd.is_some());
+        if let Command::ShowMemory = cmd.unwrap() {
+            assert!(true);
+        } else {
+            assert!(false, "unknown command");
+        }
+    }
+
+    #[test]
+    fn parser_returns_none_on_invalid_memory_command() {
+        let cmd = parse_command("!@ wat");
+        assert!(cmd.is_none());
+    }
+
+    #[test]
+    fn apply_set_register_command() {
+        let mut vm: VM = Default::default();
+        assert_eq!(0, vm.cpu.register.get(Register::PC));
+
+        apply_command("!+ PC 161", &mut vm);
+        assert_eq!(161, vm.cpu.register.get(Register::PC));
+    }
+
+    #[test]
+    fn apply_set_memory_command() {
+        let mut vm: VM = Default::default();
+        assert_eq!(0, vm.ram.byte_at(161).unwrap());
+
+        apply_command("!@ 161 13", &mut vm);
+        assert_eq!(13, vm.ram.byte_at(161).unwrap());
     }
 }
