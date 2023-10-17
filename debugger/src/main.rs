@@ -37,10 +37,20 @@ fn main() -> Result<(), String> {
                 continue;
             }
             match input.chars().next() {
-                Some('!') => {
-                    apply_command(&input, &mut vm);
-                    continue;
-                }
+                Some('!') => match apply_command(&input, &mut vm) {
+                    None => continue,
+                    Some(Action::Quit) => {
+                        quit = true;
+                        break;
+                    }
+                    Some(Action::Render(view)) => {
+                        match view {
+                            View::Memory => render::memory(&vm),
+                            View::Registers => render::registers(&vm),
+                        }
+                        continue;
+                    }
+                },
                 Some('q') => {
                     quit = true;
                     break;
@@ -66,24 +76,33 @@ fn main() -> Result<(), String> {
     Ok(())
 }
 
-fn apply_command(input: &str, vm: &mut VM) {
+enum Action {
+    Render(View),
+    Quit,
+}
+
+enum View {
+    Memory,
+    Registers,
+}
+
+fn apply_command(input: &str, vm: &mut VM) -> Option<Action> {
     let cmd = parse_command(input);
     if cmd.is_none() {
-        return;
+        return None;
     }
     match cmd.unwrap() {
         Command::SetRegister(reg, val) => {
             vm.cpu.register.set(reg, val);
+            None
         }
         Command::SetMemory(address, byte) => {
             vm.ram
                 .set_byte_at(address, byte)
                 .expect("invalid memory access");
-            render::memory(vm);
+            Some(Action::Render(View::Memory))
         }
-        Command::ShowMemory => {
-            render::memory(vm);
-        }
+        Command::ShowMemory => Some(Action::Render(View::Memory)),
     }
 }
 
