@@ -1,4 +1,4 @@
-use brrrt_vm::{Program, Register, VM};
+use brrrt_core::{Program, Register, VM};
 
 /*
     // https://riscvasm.lucasteske.dev

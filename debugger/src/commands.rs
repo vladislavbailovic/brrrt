@@ -1,4 +1,4 @@
-use brrrt_vm::Register;
+use brrrt_core::Register;
 
 #[derive(Debug)]
 pub enum Command {

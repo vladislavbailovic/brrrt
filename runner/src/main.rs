@@ -1,4 +1,4 @@
-use brrrt_vm::{Program, VM};
+use brrrt_core::{Program, VM};
 use std::fs;
 
 fn load_program(path: &str) -> Program {

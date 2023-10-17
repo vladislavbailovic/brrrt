@@ -1,4 +1,4 @@
-use brrrt_vm::{Program, VM};
+use brrrt_core::{Program, VM};
 use std::{fs, io};
 
 mod commands;
@@ -90,7 +90,7 @@ fn apply_command(input: &str, vm: &mut VM) {
 #[cfg(test)]
 mod test {
     use super::*;
-    use brrrt_vm::Register;
+    use brrrt_core::Register;
 
     #[test]
     fn apply_set_register_command() {

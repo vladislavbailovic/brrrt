@@ -1,4 +1,4 @@
-use brrrt_vm::{debug, risc32i::instruction::Instruction, Register, VM};
+use brrrt_core::{debug, risc32i::instruction::Instruction, Register, VM};
 
 pub fn memory(vm: &VM) {
     eprintln!();
