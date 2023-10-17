@@ -25,7 +25,6 @@ fn main() -> Result<(), String> {
     let mut quit = false;
     while !quit {
         loop {
-            render::registers(&vm);
             if !program.is_done(&vm) {
                 let instr = program.peek(&vm)?;
                 render::instruction(&instr);
@@ -103,6 +102,7 @@ fn apply_command(input: &str, vm: &mut VM) -> Option<Action> {
             Some(Action::Render(View::Memory))
         }
         Command::ShowMemory => Some(Action::Render(View::Memory)),
+        Command::ShowRegisters => Some(Action::Render(View::Registers)),
     }
 }
 
