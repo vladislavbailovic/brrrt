@@ -1,5 +1,6 @@
 [workspace]
 members = [
 	"vm",
-	"debugger"
+	"debugger",
+	"plier"
 ]

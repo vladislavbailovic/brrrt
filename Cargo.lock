@@ -12,3 +12,10 @@ version = "0.1.0"
 dependencies = [
  "brrrt-vm",
 ]
+
+[[package]]
+name = "plier"
+version = "0.1.0"
+dependencies = [
+ "brrrt-vm",
+]

@@ -90,7 +90,7 @@ fn apply_command(input: &str, vm: &mut VM) {
 #[cfg(test)]
 mod test {
     use super::*;
-    use brrrt_vm::{Register};
+    use brrrt_vm::Register;
 
     #[test]
     fn apply_set_register_command() {
