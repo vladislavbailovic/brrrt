@@ -31,41 +31,21 @@ fn main() -> Result<(), String> {
                 .expect("unable to clear");
             let prompt_top = if !program.is_done(&vm) {
                 let instr = program.peek(&vm)?;
-                render::at(
-                    render::Rect {
-                        x: 0,
-                        y: 6,
-                        w: 80,
-                        h: 2,
-                    },
-                    render::instruction(&instr),
-                );
+                render::at(render::Position { x: 0, y: 6 }, render::instruction(&instr));
                 8
             } else {
                 6
             };
 
-            let pos = render::Rect {
-                x: 0,
-                y: 0,
-                w: 200, // ANSI escape sequences count >.<
-                h: 4,
-            };
+            let pos = render::Position { x: 0, y: 0 };
             render::at(pos, render::memory(&vm));
-            let pos = render::Rect {
-                x: 94,
-                y: 0,
-                w: 200,
-                h: 4,
-            };
+            let pos = render::Position { x: 94, y: 0 };
             render::at(pos, render::registers(&vm));
 
             render::at(
-                render::Rect {
+                render::Position {
                     x: 0,
                     y: prompt_top,
-                    w: 80,
-                    h: 1,
                 },
                 render::prompt(),
             );

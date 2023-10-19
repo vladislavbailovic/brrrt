@@ -1,24 +1,21 @@
 use brrrt_core::{debug, risc32i::instruction::Instruction, Register, VM};
 use crossterm::{
     cursor,
-    style::{self, PrintStyledContent, Stylize},
+    style::{self, Stylize},
     QueueableCommand,
 };
 use std::io::{self, Write};
 
 #[derive(Debug)]
-pub struct Rect {
+pub struct Position {
     pub x: u16,
     pub y: u16,
-    pub w: u16,
-    pub h: u16,
 }
 
-pub fn at(pos: Rect, mut what: Vec<String>) {
+pub fn at(pos: Position, mut what: Vec<String>) {
     let mut stdout = io::stdout();
 
     for (idx, line) in what.iter_mut().enumerate() {
-        line.truncate(pos.w as usize);
         stdout
             .queue(cursor::MoveTo(pos.x, pos.y + idx as u16))
             .expect("unable to move cursor")
