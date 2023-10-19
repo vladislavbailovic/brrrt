@@ -48,14 +48,14 @@ fn main() -> Result<(), String> {
             let pos = render::Rect {
                 x: 0,
                 y: 0,
-                w: 86,
+                w: 200, // ANSI escape sequences count >.<
                 h: 4,
             };
             render::at(pos, render::memory(&vm));
             let pos = render::Rect {
                 x: 94,
                 y: 0,
-                w: 50,
+                w: 200,
                 h: 4,
             };
             render::at(pos, render::registers(&vm));
