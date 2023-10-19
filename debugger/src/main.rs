@@ -25,9 +25,10 @@ fn main() -> Result<(), String> {
     let mut quit = false;
     while !quit {
         loop {
+            let mut out = Vec::new();
             if !program.is_done(&vm) {
                 let instr = program.peek(&vm)?;
-                render::instruction(&instr);
+                out.extend(render::instruction(&instr));
             }
 
             let mut input = String::new();
@@ -35,33 +36,34 @@ fn main() -> Result<(), String> {
                 eprintln!("ERROR: unable to read input");
                 continue;
             }
-            match input.chars().next() {
+            let action = match input.chars().next() {
                 Some('!') => match apply_command(&input, &mut vm) {
-                    None => continue,
-                    Some(Action::Quit) => {
-                        quit = true;
-                        break;
-                    }
+                    None => Action::Input,
                     Some(Action::Render(view)) => {
-                        match view {
+                        out.extend(match view {
                             View::Memory => render::memory(&vm),
                             View::Registers => render::registers(&vm),
-                        }
-                        continue;
+                        });
+                        Action::Input
                     }
+                    Some(action) => action,
                 },
-                Some('q') => {
+                Some('q') => Action::Quit,
+                Some('\n') => Action::Input,
+                _ => {
+                    eprintln!("WARNING: unknown command");
+                    Action::Input
+                }
+            };
+            eprintln!("{}", out.join("\n"));
+            match action {
+                Action::Quit => {
                     quit = true;
                     break;
                 }
-                Some('\n') => {
-                    break;
-                }
-                _ => {
-                    eprintln!("WARNING: unknown command");
-                    continue;
-                }
-            }
+                Action::Input => continue,
+                Action::Render(_) => unreachable!(),
+            };
         }
         if quit {
             break;
@@ -77,6 +79,7 @@ fn main() -> Result<(), String> {
 
 enum Action {
     Render(View),
+    Input,
     Quit,
 }
 
