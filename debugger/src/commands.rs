@@ -4,8 +4,6 @@ use brrrt_core::Register;
 pub enum Command {
     SetRegister(Register, u32),
     SetMemory(u32, u8),
-    ShowMemory,
-    ShowRegisters,
 }
 
 pub fn parse_command(input: &str) -> Option<Command> {
@@ -36,12 +34,15 @@ pub fn parse_command(input: &str) -> Option<Command> {
                     Some(Token::Number(n)) => n.try_into().ok(),
                     _ => None,
                 };
+                if register.is_none() {
+                    return None;
+                }
                 let value = match t.next() {
                     Some(Token::Number(n)) => Some(n),
                     _ => None,
                 };
-                if register.is_none() && value.is_none() {
-                    return Some(Command::ShowRegisters);
+                if value.is_none() {
+                    return None;
                 }
                 return Some(Command::SetRegister(register.unwrap(), value.unwrap()));
             }
@@ -53,6 +54,9 @@ pub fn parse_command(input: &str) -> Option<Command> {
                         return None;
                     }
                 };
+                if address.is_none() {
+                    return None;
+                }
                 let byte = match t.next() {
                     Some(Token::Number(n)) => Some(n as u8),
                     None => None,
@@ -60,8 +64,8 @@ pub fn parse_command(input: &str) -> Option<Command> {
                         return None;
                     }
                 };
-                if address.is_none() && byte.is_none() {
-                    return Some(Command::ShowMemory);
+                if byte.is_none() {
+                    return None;
                 }
                 return Some(Command::SetMemory(address.unwrap(), byte.unwrap()));
             }

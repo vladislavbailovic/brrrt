@@ -1,6 +1,8 @@
 use brrrt_core::{Program, VM};
 use std::{fs, io};
 
+use crossterm::{execute, terminal};
+
 mod commands;
 use commands::{parse_command, Command};
 
@@ -25,12 +27,45 @@ fn main() -> Result<(), String> {
     let mut quit = false;
     while !quit {
         loop {
-            let mut out = Vec::new();
+            execute!(io::stdout(), terminal::Clear(terminal::ClearType::All))
+                .expect("unable to clear");
             if !program.is_done(&vm) {
                 let instr = program.peek(&vm)?;
-                out.extend(render::instruction(&instr));
+                render::at(
+                    render::Rect {
+                        x: 0,
+                        y: 5,
+                        w: 80,
+                        h: 2,
+                    },
+                    render::instruction(&instr),
+                );
             }
 
+            let pos = render::Rect {
+                x: 0,
+                y: 0,
+                w: 86,
+                h: 4,
+            };
+            render::at(pos, render::memory(&vm));
+            let pos = render::Rect {
+                x: 94,
+                y: 0,
+                w: 50,
+                h: 4,
+            };
+            render::at(pos, render::registers(&vm));
+
+            render::at(
+                render::Rect {
+                    x: 0,
+                    y: 7,
+                    w: 80,
+                    h: 1,
+                },
+                render::prompt(),
+            );
             let mut input = String::new();
             if io::stdin().read_line(&mut input).is_err() {
                 eprintln!("ERROR: unable to read input");
@@ -39,30 +74,22 @@ fn main() -> Result<(), String> {
             let action = match input.chars().next() {
                 Some('!') => match apply_command(&input, &mut vm) {
                     None => Action::Input,
-                    Some(Action::Render(view)) => {
-                        out.extend(match view {
-                            View::Memory => render::memory(&vm),
-                            View::Registers => render::registers(&vm),
-                        });
-                        Action::Input
-                    }
                     Some(action) => action,
                 },
                 Some('q') => Action::Quit,
-                Some('\n') => Action::Input,
+                Some('\n') => Action::Step,
                 _ => {
                     eprintln!("WARNING: unknown command");
                     Action::Input
                 }
             };
-            eprintln!("{}", out.join("\n"));
             match action {
                 Action::Quit => {
                     quit = true;
                     break;
                 }
+                Action::Step => break,
                 Action::Input => continue,
-                Action::Render(_) => unreachable!(),
             };
         }
         if quit {
@@ -78,14 +105,9 @@ fn main() -> Result<(), String> {
 }
 
 enum Action {
-    Render(View),
     Input,
+    Step,
     Quit,
-}
-
-enum View {
-    Memory,
-    Registers,
 }
 
 fn apply_command(input: &str, vm: &mut VM) -> Option<Action> {
@@ -96,17 +118,14 @@ fn apply_command(input: &str, vm: &mut VM) -> Option<Action> {
     match cmd.unwrap() {
         Command::SetRegister(reg, val) => {
             vm.cpu.register.set(reg, val);
-            None
         }
         Command::SetMemory(address, byte) => {
             vm.ram
                 .set_byte_at(address, byte)
                 .expect("invalid memory access");
-            Some(Action::Render(View::Memory))
         }
-        Command::ShowMemory => Some(Action::Render(View::Memory)),
-        Command::ShowRegisters => Some(Action::Render(View::Registers)),
     }
+    None
 }
 
 #[cfg(test)]
