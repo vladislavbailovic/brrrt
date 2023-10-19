@@ -20,7 +20,7 @@ pub fn parse_command(input: &str) -> Option<Command> {
                             let first = regname.chars().next();
                             if Some('x') == first && regname.len() > 1 {
                                 regname
-                                    .strip_prefix("x")
+                                    .strip_prefix('x')
                                     .expect("invalid register")
                                     .parse::<u32>()
                                     .expect("invalid register")
@@ -34,17 +34,11 @@ pub fn parse_command(input: &str) -> Option<Command> {
                     Some(Token::Number(n)) => n.try_into().ok(),
                     _ => None,
                 };
-                if register.is_none() {
-                    return None;
-                }
                 let value = match t.next() {
                     Some(Token::Number(n)) => Some(n),
                     _ => None,
-                };
-                if value.is_none() {
-                    return None;
-                }
-                return Some(Command::SetRegister(register.unwrap(), value.unwrap()));
+                }?;
+                return Some(Command::SetRegister(register?, value));
             }
             Some(Token::At) => {
                 let address = match t.next() {
@@ -53,21 +47,15 @@ pub fn parse_command(input: &str) -> Option<Command> {
                     _ => {
                         return None;
                     }
-                };
-                if address.is_none() {
-                    return None;
-                }
+                }?;
                 let byte = match t.next() {
                     Some(Token::Number(n)) => Some(n as u8),
                     None => None,
                     _ => {
                         return None;
                     }
-                };
-                if byte.is_none() {
-                    return None;
-                }
-                return Some(Command::SetMemory(address.unwrap(), byte.unwrap()));
+                }?;
+                return Some(Command::SetMemory(address, byte));
             }
             _ => return None,
         }

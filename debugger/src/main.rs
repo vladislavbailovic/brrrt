@@ -29,18 +29,21 @@ fn main() -> Result<(), String> {
         loop {
             execute!(io::stdout(), terminal::Clear(terminal::ClearType::All))
                 .expect("unable to clear");
-            if !program.is_done(&vm) {
+            let prompt_top = if !program.is_done(&vm) {
                 let instr = program.peek(&vm)?;
                 render::at(
                     render::Rect {
                         x: 0,
-                        y: 5,
+                        y: 6,
                         w: 80,
                         h: 2,
                     },
                     render::instruction(&instr),
                 );
-            }
+                8
+            } else {
+                6
+            };
 
             let pos = render::Rect {
                 x: 0,
@@ -60,7 +63,7 @@ fn main() -> Result<(), String> {
             render::at(
                 render::Rect {
                     x: 0,
-                    y: 7,
+                    y: prompt_top,
                     w: 80,
                     h: 1,
                 },
@@ -111,11 +114,8 @@ enum Action {
 }
 
 fn apply_command(input: &str, vm: &mut VM) -> Option<Action> {
-    let cmd = parse_command(input);
-    if cmd.is_none() {
-        return None;
-    }
-    match cmd.unwrap() {
+    let cmd = parse_command(input)?;
+    match cmd {
         Command::SetRegister(reg, val) => {
             vm.cpu.register.set(reg, val);
         }
