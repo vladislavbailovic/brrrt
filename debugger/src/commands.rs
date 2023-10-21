@@ -12,25 +12,7 @@ pub fn parse_command(input: &str) -> Option<Command> {
         match t.next() {
             Some(Token::Plus) => {
                 let register: Option<Register> = match t.next() {
-                    Some(Token::Identifier(regname)) => {
-                        if "PC" == &regname {
-                            Some(Register::PC)
-                        } else {
-                            let regname = regname.to_lowercase();
-                            let first = regname.chars().next();
-                            if Some('x') == first && regname.len() > 1 {
-                                regname
-                                    .strip_prefix('x')
-                                    .expect("invalid register")
-                                    .parse::<u32>()
-                                    .expect("invalid register")
-                                    .try_into()
-                                    .ok()
-                            } else {
-                                None
-                            }
-                        }
-                    }
+                    Some(Token::Identifier(x)) => x.try_into().ok(),
                     Some(Token::Number(n)) => n.try_into().ok(),
                     _ => None,
                 };

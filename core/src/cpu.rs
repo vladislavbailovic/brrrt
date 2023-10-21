@@ -120,3 +120,26 @@ impl TryFrom<u32> for Register {
         }
     }
 }
+
+impl TryFrom<String> for Register {
+    type Error = &'static str;
+
+    fn try_from(regname: String) -> Result<Self, Self::Error> {
+        if "PC" == &regname {
+            Ok(Register::PC)
+        } else {
+            let regname = regname.to_lowercase();
+            let first = regname.chars().next();
+            if Some('x') == first && regname.len() > 1 {
+                regname
+                    .strip_prefix('x')
+                    .ok_or("invalid prefix")?
+                    .parse::<u32>()
+                    .map_err(|_: std::num::ParseIntError| "not a number")?
+                    .try_into()
+            } else {
+                Err("invalid register")
+            }
+        }
+    }
+}
