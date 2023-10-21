@@ -4,7 +4,7 @@ use super::part::Part;
 
 #[derive(Debug)]
 pub struct Instruction {
-    pub(crate) opcode: Operation,
+    pub opcode: Operation,
     pub raw: u32,
     format: Format,
 }
