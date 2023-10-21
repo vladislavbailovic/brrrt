@@ -31,7 +31,7 @@ impl Instruction {
         Err(())
     }
 
-    pub(crate) fn value(&self, part: Part) -> Result<u32, ()> {
+    pub fn value(&self, part: Part) -> Result<u32, ()> {
         for x in self.format.get() {
             if x == part {
                 return Ok(x.value(self.raw));
