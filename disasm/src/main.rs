@@ -4,6 +4,7 @@ mod branch;
 mod jump;
 mod math;
 mod memory;
+mod upper;
 
 fn main() {
     // let raw = 0x00d00093; // addi x1, x0, 13
@@ -17,8 +18,8 @@ fn disassemble(raw: u32) -> String {
     let i = Instruction::parse(raw).expect("unable to parse");
 
     match i.opcode {
-        // Operation::LUI => load_upper_immediate(i),
-        // Operation::AUIPC => add_upper_immediate(i),
+        Operation::LUI => upper::load(i),
+        Operation::AUIPC => upper::add(i),
         Operation::Math => math::register(i),
         Operation::ImmediateMath => math::immediate(i),
         Operation::JAL => jump::unconditional(i),
