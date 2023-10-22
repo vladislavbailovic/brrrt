@@ -11,7 +11,7 @@ pub fn first_lsb_set(source: u32) -> i32 {
 #[cfg(test)]
 mod test_first_lsb_set {
     use super::*;
-    use crate::risc32i::instr::part::Part;
+    use crate::rv32i::instr::part::Part;
 
     #[test]
     fn lsb() {

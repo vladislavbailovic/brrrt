@@ -1,5 +1,5 @@
 #[cfg(test)]
-use crate::risc32i::{instr::builder::Builder, instr::part::Part};
+use crate::rv32i::{instr::builder::Builder, instr::part::Part};
 #[cfg(test)]
 use crate::*;
 

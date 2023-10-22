@@ -1,4 +1,4 @@
-use brrrt_core::{debug, risc32i::instruction::Instruction, Register, VM};
+use brrrt_core::{debug, rv32i::instruction::Instruction, Register, VM};
 use crossterm::{
     cursor,
     style::{self, Stylize},

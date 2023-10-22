@@ -2,7 +2,7 @@
 use brrrt_core::debug;
 use brrrt_core::{
     bitops,
-    risc32i::{instr::instruction::Instruction, instr::part::Part},
+    rv32i::{instr::instruction::Instruction, instr::part::Part},
     Register,
 };
 

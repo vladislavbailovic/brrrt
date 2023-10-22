@@ -3,7 +3,7 @@ pub mod cpu;
 pub mod debug;
 pub mod memory;
 pub mod program;
-pub mod risc32i;
+pub mod rv32i;
 
 // tests
 #[cfg(test)]
@@ -24,7 +24,7 @@ mod store;
 pub use cpu::{Register, Registers, CPU, REGISTER_INCREMENT};
 pub use memory::Memory;
 pub use program::Program;
-use risc32i::{instr::instruction::Instruction, instr::operation::Operation, instr::part::Part};
+use rv32i::{instr::instruction::Instruction, instr::operation::Operation, instr::part::Part};
 
 #[derive(Default, Debug)]
 pub struct VM {

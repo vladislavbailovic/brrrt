@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod lui {
-    use crate::risc32i::{instr::builder::Builder, instr::part::Part};
+    use crate::rv32i::{instr::builder::Builder, instr::part::Part};
     use crate::*;
 
     #[test]
@@ -25,7 +25,7 @@ mod lui {
 
 #[cfg(test)]
 mod auipc {
-    use crate::risc32i::{instr::builder::Builder, instr::part::Part};
+    use crate::rv32i::{instr::builder::Builder, instr::part::Part};
     use crate::*;
 
     #[test]

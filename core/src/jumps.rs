@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod immediate {
-    use crate::risc32i::{instr::builder::Builder, instr::part::Part};
+    use crate::rv32i::{instr::builder::Builder, instr::part::Part};
     use crate::*;
 
     #[test]
@@ -72,7 +72,7 @@ mod immediate {
 
 #[cfg(test)]
 mod register {
-    use crate::risc32i::{instr::builder::Builder, instr::part::Part};
+    use crate::rv32i::{instr::builder::Builder, instr::part::Part};
     use crate::*;
 
     #[test]

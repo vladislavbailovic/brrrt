@@ -1,5 +1,5 @@
 use brrrt_core::{
-    risc32i::{instr::instruction::Instruction, instr::part::Part},
+    rv32i::{instr::instruction::Instruction, instr::part::Part},
     Register,
 };
 

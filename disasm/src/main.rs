@@ -1,5 +1,5 @@
 use brrrt_core::{
-    risc32i::{instr::instruction::Instruction, instr::operation::Operation},
+    rv32i::{instr::instruction::Instruction, instr::operation::Operation},
     Program, VM,
 };
 use std::fs;
