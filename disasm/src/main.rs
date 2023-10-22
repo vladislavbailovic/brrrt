@@ -1,5 +1,6 @@
 use brrrt_core::risc32i::{instr::instruction::Instruction, instr::operation::Operation};
 
+mod jump;
 mod math;
 
 fn main() {
@@ -18,8 +19,8 @@ fn disassemble(raw: u32) -> String {
         // Operation::AUIPC => add_upper_immediate(i),
         Operation::Math => math::register(i),
         Operation::ImmediateMath => math::immediate(i),
-        // Operation::JAL => unconditional_jump(i),
-        // Operation::JALR => unconditional_register_jump(i),
+        Operation::JAL => jump::unconditional(i),
+        Operation::JALR => jump::register(i),
         // Operation::Branch => branch(i),
         // Operation::Load => load(i),
         // Operation::Store => store(i),

@@ -86,11 +86,11 @@ pub fn immediate(i: Instruction) -> String {
 }
 
 #[cfg(test)]
-mod test {
+mod immediate_math {
     use super::*;
 
     #[test]
-    fn immediate_math_normal() {
+    fn normal() {
         let raw = 0x00d00093; // addi x1, x0, 13
         let i = Instruction::parse(raw).expect("unable to parse");
         let expected = "addi x1, x0, 13".to_owned();
@@ -98,15 +98,20 @@ mod test {
     }
 
     #[test]
-    fn immediate_math_shift() {
+    fn shift() {
         let raw = 0x00c09a93; // slli x21, x1, 12
         let i = Instruction::parse(raw).expect("unable to parse");
         let expected = "slli x21, x1, 12".to_owned();
         assert_eq!(immediate(i), expected);
     }
+}
+
+#[cfg(test)]
+mod register_math {
+    use super::*;
 
     #[test]
-    fn register_math_add() {
+    fn add() {
         let raw = 0x003100b3; // add x1, x2, x3
         let i = Instruction::parse(raw).expect("unable to parse");
         let expected = "add x1, x2, x3".to_owned();
