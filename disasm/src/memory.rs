@@ -47,7 +47,6 @@ pub fn store(i: Instruction) -> String {
     let im40 = i.value(Part::Imm40).expect("invalid imm40");
     let im115 = i.value(Part::Imm115).expect("invalid imm115");
     let immediate = (im115 << 5) | im40; // https://stackoverflow.com/a/60239441
-    eprintln!("F3: {:03b}", f3);
     let op = match f3 {
         0b000 => "sb".to_owned(),
         0b001 => "sh".to_owned(),

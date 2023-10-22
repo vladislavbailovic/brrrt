@@ -1,4 +1,8 @@
-use brrrt_core::risc32i::{instr::instruction::Instruction, instr::operation::Operation};
+use brrrt_core::{
+    risc32i::{instr::instruction::Instruction, instr::operation::Operation},
+    Program, VM,
+};
+use std::fs;
 
 mod branch;
 mod jump;
@@ -6,17 +10,36 @@ mod math;
 mod memory;
 mod upper;
 
-fn main() {
-    // let raw = 0x00d00093; // addi x1, x0, 13
-    let raw = 0x00c09a93; // slli x21, x1, 12
+fn main() -> Result<(), String> {
+    let mut vm: VM = Default::default();
+    let program = load_program("asm/simple.bin");
 
-    let result = disassemble(raw);
-    eprintln!("result: {:?}", result);
+    while !program.is_done(&vm) {
+        let instr = program.peek(&vm)?;
+        eprintln!("{}", disassemble(instr));
+        program.step(&mut vm, 0)?;
+    }
+    Ok(())
 }
 
-fn disassemble(raw: u32) -> String {
-    let i = Instruction::parse(raw).expect("unable to parse");
+fn load_program(path: &str) -> Program {
+    let mut prg: Program = Default::default();
+    let src = fs::read(path)
+        .expect("Unable to read file")
+        .into_iter()
+        .enumerate();
+    for (i, x) in src {
+        prg.write(i as u32, x);
+    }
+    prg
+}
 
+fn disassemble_raw(raw: u32) -> String {
+    let i = Instruction::parse(raw).expect("unable to parse");
+    disassemble(i)
+}
+
+fn disassemble(i: Instruction) -> String {
     match i.opcode {
         Operation::LUI => upper::load(i),
         Operation::AUIPC => upper::add(i),
