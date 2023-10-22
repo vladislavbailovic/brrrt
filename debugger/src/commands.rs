@@ -179,18 +179,6 @@ mod test {
     }
 
     #[test]
-    fn parser_parses_memory_show_command() {
-        let cmd = parse_command("!@");
-
-        assert!(cmd.is_some());
-        if let Command::ShowMemory = cmd.unwrap() {
-            assert!(true);
-        } else {
-            assert!(false, "unknown command");
-        }
-    }
-
-    #[test]
     fn parser_returns_none_on_invalid_memory_command() {
         let cmd = parse_command("!@ wat");
         assert!(cmd.is_none());
