@@ -1,5 +1,3 @@
-#[cfg(feature = "trace")]
-use brrrt_core::debug;
 use brrrt_core::{
     risc32i::{instr::instruction::Instruction, instr::part::Part},
     Register,

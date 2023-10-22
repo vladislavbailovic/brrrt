@@ -3,6 +3,7 @@ use brrrt_core::risc32i::{instr::instruction::Instruction, instr::operation::Ope
 mod branch;
 mod jump;
 mod math;
+mod memory;
 
 fn main() {
     // let raw = 0x00d00093; // addi x1, x0, 13
@@ -23,8 +24,8 @@ fn disassemble(raw: u32) -> String {
         Operation::JAL => jump::unconditional(i),
         Operation::JALR => jump::register(i),
         Operation::Branch => branch::disassemble(i),
-        // Operation::Load => load(i),
-        // Operation::Store => store(i),
+        Operation::Load => memory::load(i),
+        Operation::Store => memory::store(i),
         _ => unreachable!("invalid instruction opcode"),
     }
 }
