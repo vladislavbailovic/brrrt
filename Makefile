@@ -1,4 +1,4 @@
-ASMFILES := $(wildcard asm/*.asm)
+ASMFILES := $(wildcard data/asm/*.asm)
 OUTFILES := $(patsubst %.asm, %.out, $(ASMFILES))
 BINFILES := $(patsubst %.asm, %.bin, $(ASMFILES))
 
