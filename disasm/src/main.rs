@@ -1,5 +1,6 @@
 use brrrt_core::risc32i::{instr::instruction::Instruction, instr::operation::Operation};
 
+mod branch;
 mod jump;
 mod math;
 
@@ -21,7 +22,7 @@ fn disassemble(raw: u32) -> String {
         Operation::ImmediateMath => math::immediate(i),
         Operation::JAL => jump::unconditional(i),
         Operation::JALR => jump::register(i),
-        // Operation::Branch => branch(i),
+        Operation::Branch => branch::disassemble(i),
         // Operation::Load => load(i),
         // Operation::Store => store(i),
         _ => unreachable!("invalid instruction opcode"),
