@@ -66,7 +66,7 @@ mod test {
         //   - If EQUAL
         //   - Unconditional jump to 12
 
-        let raw = 0x00d60463; // bne x12, x13, 0
+        let raw = 0x00d60463; // bne x12, x13, 12
         let i = Instruction::parse(raw).expect("unable to parse");
         let expected = "beq x12, x13, 8".to_owned();
         assert_eq!(disassemble(i), expected);
@@ -83,7 +83,7 @@ mod test {
         //   - If EQUAL
         //   - Unconditional jump to 32
 
-        let raw = 0x00d60463; // bne x12, x13, 0
+        let raw = 0x00d60463; // bne x12, x13, 32
         let i = Instruction::parse(raw).expect("unable to parse");
         let expected = "beq x12, x13, 8".to_owned();
         assert_eq!(disassemble(i), expected);
@@ -117,7 +117,7 @@ mod test {
         //   - If NOT EQUAL
         //   - Unconditional jump to 32
 
-        let raw = 0x00d61463; // beq x12, x13, 0
+        let raw = 0x00d61463; // beq x12, x13, 32
         let i = Instruction::parse(raw).expect("unable to parse");
         let expected = "bne x12, x13, 8".to_owned();
         assert_eq!(disassemble(i), expected);
@@ -132,7 +132,7 @@ mod test {
     fn blt() {
         // Compiles to 2 instructions
         //   - If GREATER/EQUAL
-        //   - Unconditional jump to 32
+        //   - Unconditional jump to 0
 
         let raw = 0x00d65463; // blt x12, x13, 0
         let i = Instruction::parse(raw).expect("unable to parse");
