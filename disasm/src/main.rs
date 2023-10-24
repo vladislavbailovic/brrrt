@@ -17,7 +17,7 @@ fn main() -> Result<(), String> {
     while !program.is_done(&vm) {
         let instr = program.peek(&vm)?;
         eprintln!("{}", disassemble(instr));
-        program.step(&mut vm, 0)?;
+        vm.cpu.increment_pc();
     }
     Ok(())
 }
