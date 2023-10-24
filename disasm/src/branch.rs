@@ -1,4 +1,5 @@
 use brrrt_core::{
+    bitops,
     rv32i::{instr::instruction::Instruction, instr::part::Part},
     Register,
 };
@@ -23,6 +24,8 @@ pub fn disassemble(i: Instruction) -> String {
         | (i.value(Part::B11b).expect("invalid B11b") << 10)
         | (i.value(Part::Imm105).expect("invalid Imm105") << 4)
         | (i.value(Part::Imm41).expect("invalid Imm41") << 0);
+    let immediate = (immediate >> 1) << 1;
+    let address = bitops::sign_extend(immediate, 12) * 2;
     let op = match f3 {
         0b000 => "beq".to_owned(),
         0b001 => "bne".to_owned(),
@@ -32,7 +35,7 @@ pub fn disassemble(i: Instruction) -> String {
         0b111 => "bgeu".to_owned(),
         _ => unreachable!("invalid branch instruction"),
     };
-    format!("{} {}, {}, {}", op, rs1, rs2, immediate)
+    format!("{} {}, {}, {}", op, rs1, rs2, address)
 }
 
 #[cfg(test)]
