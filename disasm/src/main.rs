@@ -12,7 +12,8 @@ mod upper;
 
 fn main() -> Result<(), String> {
     let mut vm: VM = Default::default();
-    let program = load_program("data/asm/loop1.bin");
+    // let program = load_program("data/asm/loop1.bin");
+    let program = load_program("data/c/main.bin");
 
     while !program.is_done(&vm) {
         let instr = program.peek(&vm)?;
