@@ -34,11 +34,6 @@ fn load_program(path: &str) -> Program {
     prg
 }
 
-fn disassemble_raw(raw: u32) -> String {
-    let i = Instruction::parse(raw).expect("unable to parse");
-    disassemble(i)
-}
-
 fn disassemble(i: Instruction) -> String {
     match i.opcode {
         Operation::LUI => upper::load(i),
