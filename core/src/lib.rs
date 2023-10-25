@@ -433,6 +433,7 @@ impl VM {
     fn immediate_math_normal(&mut self, i: Instruction) -> Result<(), &'static str> {
         let f3 = i.value(Part::Funct3).expect("invalid f3");
         let immediate = i.value(Part::Imm110).expect("invalid imm110");
+        let immediate = bitops::sign_extend(immediate, 12);
         let rs1: Register = i
             .value(Part::Reg1)
             .expect("invalid reg1")
@@ -457,14 +458,15 @@ impl VM {
                 // ADDI
                 self.cpu.register.set(
                     rsd,
-                    (self.cpu.register.get(rs1) as i32 + bitops::sign_extend(immediate, 12)) as u32,
+                    (self.cpu.register.get(rs1) as i32 + bitops::sign_extend(immediate as u32, 12))
+                        as u32,
                 );
                 Ok(())
             }
             0b010 => {
                 // SLTI
                 let a = self.cpu.register.get(rs1) as i32;
-                let b = bitops::sign_extend(immediate, 12);
+                let b = immediate;
                 let cmp = if a < b { 1 } else { 0 };
                 self.cpu.register.set(rsd, cmp);
                 Ok(())
@@ -472,7 +474,7 @@ impl VM {
             0b011 => {
                 // SLTIU
                 let a = self.cpu.register.get(rs1);
-                let b = immediate;
+                let b = immediate as u32;
                 let cmp = if immediate == 1 {
                     if a == 0 {
                         1
@@ -490,8 +492,11 @@ impl VM {
             0b100 => {
                 // XORI
                 let reg = self.cpu.register.get(rs1);
-                let simm = bitops::sign_extend(immediate, 12);
-                let result = if simm == -1 { !reg } else { reg ^ immediate };
+                let result = if immediate == -1 {
+                    !reg
+                } else {
+                    reg ^ immediate as u32
+                };
                 self.cpu.register.set(rsd, result);
                 Ok(())
             }
@@ -499,7 +504,8 @@ impl VM {
                 // ORI
                 self.cpu.register.set(
                     rsd,
-                    (self.cpu.register.get(rs1) as i32 | bitops::sign_extend(immediate, 12)) as u32,
+                    (self.cpu.register.get(rs1) as i32 | bitops::sign_extend(immediate as u32, 12))
+                        as u32,
                 );
                 Ok(())
             }
@@ -507,7 +513,8 @@ impl VM {
                 // XORI
                 self.cpu.register.set(
                     rsd,
-                    (self.cpu.register.get(rs1) as i32 & bitops::sign_extend(immediate, 12)) as u32,
+                    (self.cpu.register.get(rs1) as i32 & bitops::sign_extend(immediate as u32, 12))
+                        as u32,
                 );
                 Ok(())
             }

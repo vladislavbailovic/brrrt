@@ -1,4 +1,5 @@
 use brrrt_core::{
+    bitops,
     rv32i::{instr::instruction::Instruction, instr::part::Part},
     Register,
 };
@@ -71,6 +72,7 @@ pub fn immediate(i: Instruction) -> String {
         _ => {
             // immediate_math_normal
             let immediate = i.value(Part::Imm110).expect("invalid imm110");
+            let immediate = bitops::sign_extend(immediate, 12);
             let op = match f3 {
                 0b000 => "addi".to_owned(),
                 0b010 => "slti".to_owned(),
