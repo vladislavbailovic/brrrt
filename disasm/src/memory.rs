@@ -1,4 +1,5 @@
 use brrrt_core::{
+    bitops,
     rv32i::{instr::instruction::Instruction, instr::part::Part},
     Register,
 };
@@ -18,6 +19,7 @@ pub fn load(i: Instruction) -> String {
     let rs1: String = rs1.try_into().unwrap();
     let f3 = i.value(Part::Funct3).expect("invalid funct3");
     let immediate = i.value(Part::Imm110).expect("invalid imm110");
+    let immediate = bitops::sign_extend(immediate, 12);
     let op = match f3 {
         0b000 => "lb".to_owned(),
         0b001 => "lh".to_owned(),
@@ -47,6 +49,7 @@ pub fn store(i: Instruction) -> String {
     let im40 = i.value(Part::Imm40).expect("invalid imm40");
     let im115 = i.value(Part::Imm115).expect("invalid imm115");
     let immediate = (im115 << 5) | im40; // https://stackoverflow.com/a/60239441
+    let immediate = bitops::sign_extend(immediate, 12);
     let op = match f3 {
         0b000 => "sb".to_owned(),
         0b001 => "sh".to_owned(),
