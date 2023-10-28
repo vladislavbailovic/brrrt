@@ -27,7 +27,7 @@ $(BFILES): $(OFILES)
 	riscv32-unknown-linux-gnu-objcopy -O binary $(patsubst %.bin, %.out, $@) $@ --only-section .text
 
 clean:
-	rm $(OUTFILES)
-	rm $(BINFILES)
-	rm $(SFILES)
-	rm $(OFILES)
+	-rm $(OUTFILES)
+	-rm $(BINFILES)
+	-rm $(SFILES)
+	-rm $(OFILES)
