@@ -24,6 +24,14 @@ checksum = "327762f6e5a765692301e5bb513e0d9fef63be86bbc14528052b1cd3e6f03e07"
 name = "brrrt"
 version = "0.1.0"
 dependencies = [
+ "brrrt-cli",
+ "brrrt-core",
+]
+
+[[package]]
+name = "brrrt-cli"
+version = "0.1.0"
+dependencies = [
  "brrrt-core",
 ]
 
@@ -66,6 +74,7 @@ dependencies = [
 name = "debugger"
 version = "0.1.0"
 dependencies = [
+ "brrrt-cli",
  "brrrt-core",
  "crossterm",
 ]
@@ -74,6 +83,7 @@ dependencies = [
 name = "disasm"
 version = "0.1.0"
 dependencies = [
+ "brrrt-cli",
  "brrrt-core",
 ]
 

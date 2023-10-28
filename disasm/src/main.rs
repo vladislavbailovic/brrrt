@@ -1,8 +1,8 @@
+use brrrt_cli::load_program;
 use brrrt_core::{
     rv32i::{instr::instruction::Instruction, instr::operation::Operation},
-    Program, VM,
+    VM,
 };
-use std::fs;
 
 mod branch;
 mod jump;
@@ -20,18 +20,6 @@ fn main() -> Result<(), String> {
         vm.cpu.increment_pc();
     }
     Ok(())
-}
-
-fn load_program(path: &str) -> Program {
-    let mut prg: Program = Default::default();
-    let src = fs::read(path)
-        .expect("Unable to read file")
-        .into_iter()
-        .enumerate();
-    for (i, x) in src {
-        prg.write(i as u32, x);
-    }
-    prg
 }
 
 fn disassemble(i: Instruction) -> String {

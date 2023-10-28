@@ -1,5 +1,6 @@
-use brrrt_core::{Program, VM};
-use std::{fs, io};
+use brrrt_cli::load_program;
+use brrrt_core::VM;
+use std::io;
 
 use crossterm::{execute, terminal};
 
@@ -7,18 +8,6 @@ mod commands;
 use commands::{parse_command, Command};
 
 mod render;
-
-fn load_program(path: &str) -> Program {
-    let mut prg: Program = Default::default();
-    let src = fs::read(path)
-        .expect("Unable to read file")
-        .into_iter()
-        .enumerate();
-    for (i, x) in src {
-        prg.write(i as u32, x);
-    }
-    prg
-}
 
 fn main() -> Result<(), String> {
     let mut vm: VM = Default::default();
@@ -45,7 +34,7 @@ fn main() -> Result<(), String> {
             let pos = render::Position { x: 100, y: 0 };
             render::at(pos, render::registers(&vm));
 
-            if outcome.len() > 0 {
+            if !outcome.is_empty() {
                 render::at(
                     render::Position {
                         x: 0,
