@@ -26,16 +26,20 @@ pub fn at(pos: Position, mut what: Vec<String>) {
 }
 
 pub fn memory(vm: &VM) -> Vec<String> {
+    memory_at(0, vm)
+}
+
+pub fn memory_at(start_addr: u32, vm: &VM) -> Vec<String> {
     let mut out = Vec::new();
     let mut tmp = String::with_capacity(40);
-    for pos in 0..24 {
+    for pos in start_addr..start_addr + 24 {
         if pos > 0 && pos % 4 == 0 {
             out.push(tmp.clone());
             tmp = String::new();
         }
         tmp.push_str(&format!(
             "{} {: <18}",
-            format!("{:02}:", pos).dark_grey(),
+            format!("{:04}:", pos).dark_grey(),
             debug::number(
                 vm.ram.byte_at(pos).expect("invalid memory access") as u32,
                 8

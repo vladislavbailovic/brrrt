@@ -5,6 +5,7 @@ pub enum Command {
     SetRegister(Register, u32),
     SetMemory(u32, u8),
     DumpRegister(Register),
+    DumpMemory(u32),
 }
 
 pub fn parse_command(input: &str) -> Option<Command> {
@@ -41,8 +42,12 @@ pub fn parse_command(input: &str) -> Option<Command> {
                     _ => {
                         return None;
                     }
-                }?;
-                return Some(Command::SetMemory(address, byte));
+                };
+                if byte.is_none() {
+                    return Some(Command::DumpMemory(address));
+                } else {
+                    return Some(Command::SetMemory(address, byte?));
+                }
             }
             _ => return None,
         }

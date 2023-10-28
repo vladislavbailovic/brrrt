@@ -42,7 +42,7 @@ fn main() -> Result<(), String> {
 
             let pos = render::Position { x: 0, y: 0 };
             render::at(pos, render::memory(&vm));
-            let pos = render::Position { x: 94, y: 0 };
+            let pos = render::Position { x: 100, y: 0 };
             render::at(pos, render::registers(&vm));
 
             if inspect.len() > 0 {
@@ -125,6 +125,9 @@ fn apply_command(input: &str, vm: &mut VM) -> Option<Action> {
         }
         Command::DumpRegister(reg) => {
             return Some(Action::Inspect(render::register(reg, vm)));
+        }
+        Command::DumpMemory(start_addr) => {
+            return Some(Action::Inspect(render::memory_at(start_addr, vm)));
         }
     }
     None
