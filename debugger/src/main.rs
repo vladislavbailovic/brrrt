@@ -27,6 +27,7 @@ fn main() -> Result<(), String> {
     vm.cpu.initialize();
 
     let mut quit = false;
+    let mut inspect = Vec::new();
     while !quit {
         loop {
             execute!(io::stdout(), terminal::Clear(terminal::ClearType::All))
@@ -43,6 +44,17 @@ fn main() -> Result<(), String> {
             render::at(pos, render::memory(&vm));
             let pos = render::Position { x: 94, y: 0 };
             render::at(pos, render::registers(&vm));
+
+            if inspect.len() > 0 {
+                render::at(
+                    render::Position {
+                        x: 0,
+                        y: prompt_top + 1,
+                    },
+                    inspect.clone(),
+                );
+                inspect.clear();
+            }
 
             render::at(
                 render::Position {
@@ -75,6 +87,10 @@ fn main() -> Result<(), String> {
                 }
                 Action::Step => break,
                 Action::Input => continue,
+                Action::Inspect(val) => {
+                    inspect.extend_from_slice(&val);
+                    continue;
+                }
             };
         }
         if quit {
@@ -93,6 +109,7 @@ enum Action {
     Input,
     Step,
     Quit,
+    Inspect(Vec<String>),
 }
 
 fn apply_command(input: &str, vm: &mut VM) -> Option<Action> {
@@ -105,6 +122,9 @@ fn apply_command(input: &str, vm: &mut VM) -> Option<Action> {
             vm.ram
                 .set_byte_at(address, byte)
                 .expect("invalid memory access");
+        }
+        Command::DumpRegister(reg) => {
+            return Some(Action::Inspect(render::register(reg, vm)));
         }
     }
     None

@@ -45,6 +45,14 @@ pub fn memory(vm: &VM) -> Vec<String> {
     out
 }
 
+pub fn register(reg: Register, vm: &VM) -> Vec<String> {
+    vec![format!(
+        "{} {}",
+        format!("{:?}:", reg).dark_green(),
+        debug::number(vm.cpu.register.get(reg), 32)
+    )]
+}
+
 pub fn registers(vm: &VM) -> Vec<String> {
     let mut out = Vec::new();
     let registers = &[Register::X0, Register::X1, Register::X2, Register::X3];

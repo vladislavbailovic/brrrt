@@ -4,6 +4,7 @@ use brrrt_core::Register;
 pub enum Command {
     SetRegister(Register, u32),
     SetMemory(u32, u8),
+    DumpRegister(Register),
 }
 
 pub fn parse_command(input: &str) -> Option<Command> {
@@ -19,8 +20,12 @@ pub fn parse_command(input: &str) -> Option<Command> {
                 let value = match t.next() {
                     Some(Token::Number(n)) => Some(n),
                     _ => None,
-                }?;
-                return Some(Command::SetRegister(register?, value));
+                };
+                if value.is_none() {
+                    return Some(Command::DumpRegister(register?));
+                } else {
+                    return Some(Command::SetRegister(register?, value?));
+                }
             }
             Some(Token::At) => {
                 let address = match t.next() {
