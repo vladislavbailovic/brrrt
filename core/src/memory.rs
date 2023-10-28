@@ -174,7 +174,7 @@ impl Memory {
     }
 }
 
-const DEFAULT_MEMORY_POOL_SIZE: u32 = 1024;
+pub(crate) const DEFAULT_MEMORY_POOL_SIZE: u32 = 1024;
 impl Default for Memory {
     fn default() -> Self {
         Self::new(DEFAULT_MEMORY_POOL_SIZE)

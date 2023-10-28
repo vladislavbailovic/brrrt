@@ -1,3 +1,5 @@
+use crate::memory::DEFAULT_MEMORY_POOL_SIZE;
+
 #[derive(Default, Debug)]
 pub struct CPU {
     pub register: Registers,
@@ -9,6 +11,11 @@ impl CPU {
             Register::PC,
             self.register.get(Register::PC) + REGISTER_INCREMENT,
         );
+    }
+
+    /// Initialize stack pointer
+    pub fn initialize(&mut self) {
+        self.register.set(Register::X2, DEFAULT_MEMORY_POOL_SIZE);
     }
 }
 

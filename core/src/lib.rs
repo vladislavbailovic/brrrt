@@ -363,9 +363,11 @@ impl VM {
         }
 
         self.cpu.register.set(rsd, pc + REGISTER_INCREMENT);
-        self.cpu
-            .register
-            .set(Register::PC, address - REGISTER_INCREMENT); // Because on Ok PC gets incremented
+        if address > REGISTER_INCREMENT {
+            self.cpu
+                .register
+                .set(Register::PC, address - REGISTER_INCREMENT); // Because on Ok PC gets incremented
+        }
         Ok(())
     }
 

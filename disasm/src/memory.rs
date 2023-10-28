@@ -26,7 +26,7 @@ pub fn load(i: Instruction) -> String {
         0b010 => "lw".to_owned(),
         0b100 => "lbu".to_owned(),
         0b101 => "lhu".to_owned(),
-        0b011 => "ld".to_owned(), // wat? Not in spec o.0! "Arbitrary load" apparently
+        0b011 => "ld".to_owned(),
         _ => unreachable!("invalid load operation"),
     };
     format!("{} {}, {}({})", op, rsd, immediate, rs1)
@@ -54,7 +54,7 @@ pub fn store(i: Instruction) -> String {
         0b000 => "sb".to_owned(),
         0b001 => "sh".to_owned(),
         0b010 => "sw".to_owned(),
-        0b011 => "sd".to_owned(), // wat? Not in spec o.0! "Arbitrary store" apparently
+        0b011 => "sd".to_owned(),
         _ => unreachable!("invalid store instruction"),
     };
     format!("{} {}, {}({})", op, rs2, immediate, rs1)

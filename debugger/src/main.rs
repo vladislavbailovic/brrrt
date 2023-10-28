@@ -22,7 +22,9 @@ fn load_program(path: &str) -> Program {
 
 fn main() -> Result<(), String> {
     let mut vm: VM = Default::default();
-    let program = load_program("data/asm/simple.bin");
+    let program = load_program("data/c/return-add.bin");
+
+    vm.cpu.initialize();
 
     let mut quit = false;
     while !quit {
