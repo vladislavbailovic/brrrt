@@ -11,20 +11,20 @@ all:  $(BINFILES) $(BFILES)
 	@echo "Binaries built"
 
 $(BINFILES): $(OUTFILES)
-	riscv64-unknown-linux-gnu-objcopy -O binary $(patsubst %.bin, %.out, $@) $@ --only-section .text
+	riscv32-unknown-linux-gnu-objcopy -O binary $(patsubst %.bin, %.out, $@) $@ --only-section .text
 
 $(OUTFILES): $(ASMFILES)
-	riscv64-unknown-linux-gnu-as -o $@ $(patsubst %.out,%.asm,$@)
+	riscv32-unknown-linux-gnu-as -o $@ $(patsubst %.out,%.asm,$@)
 
 $(OFILES): $(SFILES)
-	riscv64-unknown-linux-gnu-as -o $@ $(patsubst %.out,%.asm,$@)
+	riscv32-unknown-linux-gnu-as -o $@ $(patsubst %.out,%.asm,$@)
 
 $(SFILES): $(CFILES)
-	riscv64-unknown-linux-gnu-gcc -S -o $@ $(patsubst %.asm,%.c,$@)
+	riscv32-unknown-linux-gnu-gcc -S -o $@ $(patsubst %.asm,%.c,$@)
 	sed -E -e '/\s+\./d' -e '/^main:/d' -e 's/^\s+//' -i $@
 
 $(BFILES): $(OFILES)
-	riscv64-unknown-linux-gnu-objcopy -O binary $(patsubst %.bin, %.out, $@) $@ --only-section .text
+	riscv32-unknown-linux-gnu-objcopy -O binary $(patsubst %.bin, %.out, $@) $@ --only-section .text
 
 clean:
 	rm $(OUTFILES)
