@@ -26,6 +26,9 @@ $(SFILES): $(CFILES)
 $(BFILES): $(OFILES)
 	riscv32-unknown-linux-gnu-objcopy -O binary $(patsubst %.bin, %.out, $@) $@ --only-section .text
 
+show: $(OFILES)
+	riscv32-unknown-linux-gnu-objdump --disassemble -M numeric,no-aliases $^
+
 clean:
 	-rm $(OUTFILES)
 	-rm $(BINFILES)
