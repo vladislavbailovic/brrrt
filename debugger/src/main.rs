@@ -11,7 +11,7 @@ mod render;
 
 fn main() -> Result<(), String> {
     let mut vm: VM = Default::default();
-    let program = load_program("data/c/if.bin");
+    let program = load_program();
 
     vm.cpu.initialize();
 
