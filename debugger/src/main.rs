@@ -27,7 +27,7 @@ fn main() -> Result<(), String> {
     vm.cpu.initialize();
 
     let mut quit = false;
-    let mut inspect = Vec::new();
+    let mut outcome = Vec::new();
     while !quit {
         loop {
             execute!(io::stdout(), terminal::Clear(terminal::ClearType::All))
@@ -45,15 +45,15 @@ fn main() -> Result<(), String> {
             let pos = render::Position { x: 100, y: 0 };
             render::at(pos, render::registers(&vm));
 
-            if inspect.len() > 0 {
+            if outcome.len() > 0 {
                 render::at(
                     render::Position {
                         x: 0,
                         y: prompt_top + 1,
                     },
-                    inspect.clone(),
+                    outcome.clone(),
                 );
-                inspect.clear();
+                outcome.clear();
             }
 
             render::at(
@@ -65,7 +65,7 @@ fn main() -> Result<(), String> {
             );
             let mut input = String::new();
             if io::stdin().read_line(&mut input).is_err() {
-                eprintln!("ERROR: unable to read input");
+                outcome.extend_from_slice(&render::error("unable to read input"));
                 continue;
             }
             let action = match input.chars().next() {
@@ -76,7 +76,7 @@ fn main() -> Result<(), String> {
                 Some('q') => Action::Quit,
                 Some('\n') => Action::Step,
                 _ => {
-                    eprintln!("WARNING: unknown command");
+                    outcome.extend_from_slice(&render::warning("unknown command"));
                     Action::Input
                 }
             };
@@ -88,7 +88,7 @@ fn main() -> Result<(), String> {
                 Action::Step => break,
                 Action::Input => continue,
                 Action::Inspect(val) => {
-                    inspect.extend_from_slice(&val);
+                    outcome.extend_from_slice(&val);
                     continue;
                 }
             };

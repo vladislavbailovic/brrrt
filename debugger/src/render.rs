@@ -85,3 +85,11 @@ pub fn instruction(instr: &Instruction) -> Vec<String> {
 pub fn prompt() -> Vec<String> {
     vec!["> ".to_owned()]
 }
+
+pub fn error(src: &str) -> Vec<String> {
+    vec![format!("{} {}", "[ERROR]".dark_red(), src)]
+}
+
+pub fn warning(src: &str) -> Vec<String> {
+    vec![format!("{} {}", "[WARNING]".dark_yellow(), src)]
+}
