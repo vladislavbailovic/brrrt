@@ -11,20 +11,38 @@ mod render;
 
 fn main() -> Result<(), String> {
     let mut vm: VM = Default::default();
+    let mut debug_vm: VM = Default::default();
     let program = load_program();
 
     vm.cpu.initialize();
+    debug_vm.cpu.initialize();
 
     let mut quit = false;
     let mut outcome = Vec::new();
     while !quit {
+        if !program.is_done(&debug_vm) {
+            program.step(&mut debug_vm, 0)?;
+        }
         loop {
             execute!(io::stdout(), terminal::Clear(terminal::ClearType::All))
                 .expect("unable to clear");
             let prompt_top = if !program.is_done(&vm) {
-                let instr = program.peek(&vm)?;
-                render::at(render::Position { x: 0, y: 6 }, render::instruction(&instr));
-                8
+                let instr = debug_vm.last();
+                let pos = if instr.is_some() {
+                    render::at(
+                        render::Position { x: 0, y: 6 },
+                        render::instruction(&instr.unwrap()),
+                    );
+                    8
+                } else {
+                    6
+                };
+                let debug = debug_vm.debug();
+                let line_count = debug.len();
+                if !debug.is_empty() {
+                    render::at(render::Position { x: 0, y: pos }, debug);
+                }
+                pos + line_count as u16
             } else {
                 6
             };

@@ -30,10 +30,25 @@ use rv32i::{instr::instruction::Instruction, instr::operation::Operation, instr:
 pub struct VM {
     pub cpu: CPU,
     pub ram: Memory,
+    #[cfg(feature = "debug")]
+    debug: Vec<String>,
+    #[cfg(feature = "debug")]
+    last: Option<Instruction>,
 }
 
 impl VM {
+    #[cfg(feature = "debug")]
+    pub fn debug(&self) -> Vec<String> {
+        self.debug.clone()
+    }
+    #[cfg(feature = "debug")]
+    pub fn last(&self) -> Option<Instruction> {
+        self.last.clone()
+    }
+
     pub fn execute(&mut self, i: Instruction) -> Result<(), &'static str> {
+        self.debug.clear();
+        self.last = Some(i.clone());
         let result = match i.opcode {
             Operation::LUI => self.load_upper_immediate(i),
             Operation::AUIPC => self.add_upper_immediate(i),
@@ -69,19 +84,25 @@ impl VM {
         let immediate = (im115 << 5) | im40; // https://stackoverflow.com/a/60239441
         let address = self.cpu.register.get(rs1) as i32 + bitops::sign_extend(immediate, 12);
 
-        #[cfg(feature = "trace")]
+        #[cfg(any(feature = "trace", feature = "debug"))]
         {
-            eprintln!("\t\trs1: {:?}", rs1);
-            eprintln!("\t\trs2: {:?}", rs2);
-            eprintln!("\t\t f3: {}", debug::number(f3, 5));
-            eprintln!("\t\tim1: {}", debug::number(im115, 12));
-            eprintln!("\t\tim4: {}", debug::number(im40, 12));
-            eprintln!("\t\timm: {}", debug::number(immediate, 12));
-            eprintln!(
-                "\t\text: {}",
-                debug::number(bitops::sign_extend(immediate, 12), 12)
-            );
-            eprintln!("\t\tadr: {}", debug::number(address, 12));
+            let debug = vec![
+                format!("\t\trs1: {:?}", rs1),
+                format!("\t\trs2: {:?}", rs2),
+                format!("\t\t f3: {}", debug::number(f3, 5)),
+                format!("\t\tim1: {}", debug::number(im115, 12)),
+                format!("\t\tim4: {}", debug::number(im40, 12)),
+                format!("\t\timm: {}", debug::number(immediate, 12)),
+                format!(
+                    "\t\text: {}",
+                    debug::number(bitops::sign_extend(immediate, 12), 12)
+                ),
+                format!("\t\tadr: {}", debug::number(address, 12)),
+            ];
+            #[cfg(feature = "trace")]
+            eprintln!("{}", debug.join("\n"));
+            #[cfg(feature = "debug")]
+            self.debug.extend_from_slice(&debug);
         }
 
         match f3 {
@@ -125,13 +146,19 @@ impl VM {
         let immediate = i.value(Part::Imm110).expect("invalid imm110");
         let address = self.cpu.register.get(rs1) as i32 + bitops::sign_extend(immediate, 12);
 
-        #[cfg(feature = "trace")]
+        #[cfg(any(feature = "trace", feature = "debug"))]
         {
-            eprintln!("\t\trsd: {:?}", rsd);
-            eprintln!("\t\trs1: {:?}", rs1);
-            eprintln!("\t\t f3: {}", debug::number(f3, 3));
-            eprintln!("\t\timm: {}", debug::number(immediate, 12));
-            eprintln!("\t\tadr: {}", debug::number(address, 12));
+            let debug = vec![
+                format!("\t\trsd: {:?}", rsd),
+                format!("\t\trs1: {:?}", rs1),
+                format!("\t\t f3: {}", debug::number(f3, 3)),
+                format!("\t\timm: {}", debug::number(immediate, 12)),
+                format!("\t\tadr: {}", debug::number(address, 12)),
+            ];
+            #[cfg(feature = "trace")]
+            eprintln!("{}", debug.join("\n"));
+            #[cfg(feature = "debug")]
+            self.debug.extend_from_slice(&debug);
         }
 
         match f3 {
@@ -198,11 +225,17 @@ impl VM {
         let immediate = i.value(Part::Imm3112).expect("invalid immediate 31:12");
         let pc = self.cpu.register.get(Register::PC);
 
-        #[cfg(feature = "trace")]
+        #[cfg(any(feature = "trace", feature = "debug"))]
         {
-            eprintln!("\t\trsd: {:?}", rsd);
-            eprintln!("\t\timm: {}", debug::number(immediate, 20));
-            eprintln!("\t\t pc: {}", pc);
+            let debug = vec![
+                format!("\t\trsd: {:?}", rsd),
+                format!("\t\timm: {}", debug::number(immediate, 20)),
+                format!("\t\t pc: {}", pc),
+            ];
+            #[cfg(feature = "trace")]
+            eprintln!("{}", debug.join("\n"));
+            #[cfg(feature = "debug")]
+            self.debug.extend_from_slice(&debug);
         }
 
         self.cpu.register.set(
@@ -220,10 +253,16 @@ impl VM {
             .expect("invalid register");
         let immediate = i.value(Part::Imm3112).expect("invalid immediate 31:12");
 
-        #[cfg(feature = "trace")]
+        #[cfg(any(feature = "trace", feature = "debug"))]
         {
-            eprintln!("\t\trsd: {:?}", rsd);
-            eprintln!("\t\timm: {}", debug::number(immediate, 20));
+            let debug = vec![
+                format!("\t\trsd: {:?}", rsd),
+                format!("\t\timm: {}", debug::number(immediate, 20)),
+            ];
+            #[cfg(feature = "trace")]
+            eprintln!("{}", debug.join("\n"));
+            #[cfg(feature = "debug")]
+            self.debug.extend_from_slice(&debug);
         }
 
         self.cpu
@@ -247,12 +286,18 @@ impl VM {
         let f3 = i.value(Part::Funct3).expect("invalid funct3");
         let pc = (self.cpu.register.get(Register::PC) as i32) - REGISTER_INCREMENT as i32;
 
-        #[cfg(feature = "trace")]
+        #[cfg(any(feature = "trace", feature = "debug"))]
         {
-            eprintln!("\t\t- rs1: {:?}", rs1);
-            eprintln!("\t\t- rs2: {:?}", rs2);
-            eprintln!("\t\t-  pc: {}", pc);
-            eprintln!("\t\t-  f3: {}", debug::number(f3, 3));
+            let debug = vec![
+                format!("\t\t- rs1: {:?}", rs1),
+                format!("\t\t- rs2: {:?}", rs2),
+                format!("\t\t-  pc: {}", pc),
+                format!("\t\t-  f3: {}", debug::number(f3, 3)),
+            ];
+            #[cfg(feature = "trace")]
+            eprintln!("{}", debug.join("\n"));
+            #[cfg(feature = "debug")]
+            self.debug.extend_from_slice(&debug);
         }
 
         let immediate = 0
@@ -260,33 +305,45 @@ impl VM {
             | (i.value(Part::B11b).expect("invalid B11b") << 10)
             | (i.value(Part::Imm105).expect("invalid Imm105") << 4)
             | (i.value(Part::Imm41).expect("invalid Imm41") << 0);
-        #[cfg(feature = "trace")]
+        #[cfg(any(feature = "trace", feature = "debug"))]
         {
-            eprintln!(
-                "\t\t\t- b12b: {}",
-                debug::number(i.value(Part::B12b).unwrap(), 12)
-            );
-            eprintln!(
-                "\t\t\t- b11b: {}",
-                debug::number(i.value(Part::B11b).unwrap(), 12)
-            );
-            eprintln!(
-                "\t\t\t- imm1: {}",
-                debug::number(i.value(Part::Imm105).unwrap(), 12)
-            );
-            eprintln!(
-                "\t\t\t- imm4: {}",
-                debug::number(i.value(Part::Imm41).unwrap(), 12)
-            );
-            eprintln!("\t\t- rim: {}", debug::number(immediate, 12));
+            let debug = vec![
+                format!(
+                    "\t\t\t- b12b: {}",
+                    debug::number(i.value(Part::B12b).unwrap(), 12)
+                ),
+                format!(
+                    "\t\t\t- b11b: {}",
+                    debug::number(i.value(Part::B11b).unwrap(), 12)
+                ),
+                format!(
+                    "\t\t\t- imm1: {}",
+                    debug::number(i.value(Part::Imm105).unwrap(), 12)
+                ),
+                format!(
+                    "\t\t\t- imm4: {}",
+                    debug::number(i.value(Part::Imm41).unwrap(), 12)
+                ),
+                format!("\t\t- rim: {}", debug::number(immediate, 12)),
+            ];
+            #[cfg(feature = "trace")]
+            eprintln!("{}", debug.join("\n"));
+            #[cfg(feature = "debug")]
+            self.debug.extend_from_slice(&debug);
         }
 
         let immediate = (immediate >> 1) << 1;
         let address = bitops::sign_extend(immediate, 12) * 2;
-        #[cfg(feature = "trace")]
+        #[cfg(any(feature = "trace", feature = "debug"))]
         {
-            eprintln!("\t\t- imm: {}", debug::number(immediate, 12));
-            eprintln!("\t\t- adr: {}", debug::number(address, 12));
+            let debug = vec![
+                format!("\t\t- imm: {}", debug::number(immediate, 12)),
+                format!("\t\t- adr: {}", debug::number(address, 12)),
+            ];
+            #[cfg(feature = "trace")]
+            eprintln!("{}", debug.join("\n"));
+            #[cfg(feature = "debug")]
+            self.debug.extend_from_slice(&debug);
         }
 
         match f3 {
@@ -353,13 +410,19 @@ impl VM {
         let address =
             (self.cpu.register.get(rs1) + immediate) & 0b0111_1111_1111_1111_1111_1111_1111_1111;
 
-        #[cfg(feature = "trace")]
+        #[cfg(any(feature = "trace", feature = "debug"))]
         {
-            eprintln!("\t\t- rsd: {:?}", rsd);
-            eprintln!("\t\t- rs1: {:?}", rs1);
-            eprintln!("\t\t-  pc: {}", debug::number(pc, 12));
-            eprintln!("\t\t- imm: {}", debug::number(immediate, 12));
-            eprintln!("\t\t- adr: {}", debug::number(address, 12));
+            let debug = vec![
+                format!("\t\t- rsd: {:?}", rsd),
+                format!("\t\t- rs1: {:?}", rs1),
+                format!("\t\t-  pc: {}", debug::number(pc, 12)),
+                format!("\t\t- imm: {}", debug::number(immediate, 12)),
+                format!("\t\t- adr: {}", debug::number(address, 12)),
+            ];
+            #[cfg(feature = "trace")]
+            eprintln!("{}", debug.join("\n"));
+            #[cfg(feature = "debug")]
+            self.debug.extend_from_slice(&debug);
         }
 
         self.cpu.register.set(rsd, pc + REGISTER_INCREMENT);
@@ -388,33 +451,43 @@ impl VM {
             self.cpu.register.set(rsd, pc + REGISTER_INCREMENT);
         }
 
-        #[cfg(feature = "trace")]
+        #[cfg(any(feature = "trace", feature = "debug"))]
         {
-            eprintln!("\t\t- rsd: {:?}", rsd);
-            eprintln!("\t\t- pc: {}", pc);
-            eprintln!(
-                "\t\t\t- b20b: {}",
-                debug::number(i.value(Part::B20j).unwrap(), 20)
-            );
-            eprintln!(
-                "\t\t\t- im19: {}",
-                debug::number(i.value(Part::Imm1912).unwrap(), 20)
-            );
-            eprintln!(
-                "\t\t\t- b11j: {}",
-                debug::number(i.value(Part::B11j).unwrap(), 20)
-            );
-            eprintln!(
-                "\t\t\t- im10: {}",
-                debug::number(i.value(Part::Imm101).unwrap(), 20)
-            );
-            eprintln!("\t\t- imm: {}", debug::number(immediate, 20));
+            let debug = vec![
+                format!("\t\t- rsd: {:?}", rsd),
+                format!("\t\t- pc: {}", pc),
+                format!(
+                    "\t\t\t- b20b: {}",
+                    debug::number(i.value(Part::B20j).unwrap(), 20)
+                ),
+                format!(
+                    "\t\t\t- im19: {}",
+                    debug::number(i.value(Part::Imm1912).unwrap(), 20)
+                ),
+                format!(
+                    "\t\t\t- b11j: {}",
+                    debug::number(i.value(Part::B11j).unwrap(), 20)
+                ),
+                format!(
+                    "\t\t\t- im10: {}",
+                    debug::number(i.value(Part::Imm101).unwrap(), 20)
+                ),
+                format!("\t\t- imm: {}", debug::number(immediate, 20)),
+            ];
+            #[cfg(feature = "trace")]
+            eprintln!("{}", debug.join("\n"));
+            #[cfg(feature = "debug")]
+            self.debug.extend_from_slice(&debug);
         }
 
         let immediate = bitops::sign_extend(immediate, 20);
-        #[cfg(feature = "trace")]
+        #[cfg(any(feature = "trace", feature = "debug"))]
         {
-            eprintln!("\t\t- sim: {}", debug::number(immediate, 20));
+            let debug = vec![format!("\t\t- sim: {}", debug::number(immediate, 20))];
+            #[cfg(feature = "trace")]
+            eprintln!("{}", debug.join("\n"));
+            #[cfg(feature = "debug")]
+            self.debug.extend_from_slice(&debug);
         }
 
         self.cpu
@@ -447,12 +520,18 @@ impl VM {
             .try_into()
             .expect("invalid register");
 
-        #[cfg(feature = "trace")]
+        #[cfg(any(feature = "trace", feature = "debug"))]
         {
-            eprintln!("\t\t- rs1: {:?}", rs1);
-            eprintln!("\t\t- rsd: {:?}", rsd);
-            eprintln!("\t\t-  f3: {}", debug::number(f3, 3));
-            eprintln!("\t\t- imm: {}", debug::number(immediate, 12));
+            let debug = vec![
+                format!("\t\t- rs1: {:?}", rs1),
+                format!("\t\t- rsd: {:?}", rsd),
+                format!("\t\t-  f3: {}", debug::number(f3, 3)),
+                format!("\t\t- imm: {}", debug::number(immediate, 12)),
+            ];
+            #[cfg(feature = "trace")]
+            eprintln!("{}", debug.join("\n"));
+            #[cfg(feature = "debug")]
+            self.debug.extend_from_slice(&debug);
         }
 
         match f3 {
@@ -542,14 +621,20 @@ impl VM {
             .try_into()
             .expect("invalid register");
 
-        #[cfg(feature = "trace")]
+        #[cfg(any(feature = "trace", feature = "debug"))]
         {
-            eprintln!("\t\t- rs1: {:?}", rs1);
-            eprintln!("\t\t- rsd: {:?}", rsd);
-            eprintln!("\t\t-  f3: {}", debug::number(f3, 3));
-            eprintln!("\t\t- rim: {}", debug::number(raw_immediate, 12));
-            eprintln!("\t\t- imm: {}", debug::number(immediate, 12));
-            eprintln!("\t\t- shf: {}", debug::number(shift, 12));
+            let debug = vec![
+                format!("\t\t- rs1: {:?}", rs1),
+                format!("\t\t- rsd: {:?}", rsd),
+                format!("\t\t-  f3: {}", debug::number(f3, 3)),
+                format!("\t\t- rim: {}", debug::number(raw_immediate, 12)),
+                format!("\t\t- imm: {}", debug::number(immediate, 12)),
+                format!("\t\t- shf: {}", debug::number(shift, 12)),
+            ];
+            #[cfg(feature = "trace")]
+            eprintln!("{}", debug.join("\n"));
+            #[cfg(feature = "debug")]
+            self.debug.extend_from_slice(&debug);
         }
 
         match (f3, shift) {
@@ -597,13 +682,19 @@ impl VM {
             .try_into()
             .expect("invalid register");
 
-        #[cfg(feature = "trace")]
+        #[cfg(any(feature = "trace", feature = "debug"))]
         {
-            eprintln!("\t\t- rs1: {:?}", rs1);
-            eprintln!("\t\t- rs2: {:?}", rs2);
-            eprintln!("\t\t- rsd: {:?}", rsd);
-            eprintln!("\t\t-  f3: {}", debug::number(f3, 3));
-            eprintln!("\t\t-  f7: {}", debug::number(f7, 8));
+            let debug = vec![
+                format!("\t\t- rs1: {:?}", rs1),
+                format!("\t\t- rs2: {:?}", rs2),
+                format!("\t\t- rsd: {:?}", rsd),
+                format!("\t\t-  f3: {}", debug::number(f3, 3)),
+                format!("\t\t-  f7: {}", debug::number(f7, 8)),
+            ];
+            #[cfg(feature = "trace")]
+            eprintln!("{}", debug.join("\n"));
+            #[cfg(feature = "debug")]
+            self.debug.extend_from_slice(&debug);
         }
 
         match (f3, f7) {

@@ -2,7 +2,7 @@ use super::format::Format;
 use super::operation::Operation;
 use super::part::Part;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Instruction {
     pub opcode: Operation,
     pub raw: u32,

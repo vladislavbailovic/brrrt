@@ -77,7 +77,7 @@ pub fn registers(vm: &VM) -> Vec<String> {
 
 pub fn instruction(instr: &Instruction) -> Vec<String> {
     vec![
-        format!("{} {:?}", "next:".dark_yellow(), instr),
+        format!("{} {:?}", "inst:".dark_yellow(), instr),
         format!("{}  {}", "raw:".white(), debug::number(instr.raw, 32)),
     ]
 }

@@ -1,6 +1,6 @@
 use super::part::Part;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub(crate) enum Format {
     Register2register,
     Immediate,
