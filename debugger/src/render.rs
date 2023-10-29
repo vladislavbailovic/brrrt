@@ -32,23 +32,26 @@ pub fn memory(vm: &VM) -> Vec<String> {
 pub fn memory_at(start_addr: u32, vm: &VM) -> Vec<String> {
     let mut out = Vec::new();
     let mut tmp = String::with_capacity(40);
+    let mut col = 0;
     for pos in start_addr..start_addr + 24 {
-        if pos > 0 && pos % 4 == 0 {
+        if col == 4 {
             out.push(tmp.clone());
             tmp = String::new();
+            col = 0;
         }
+        let mut position = format!("{:04}:", pos).dark_grey();
         let value = vm.ram.byte_at(pos);
         let displayable = if let Ok(value) = value {
+            if value > 0 {
+                position = format!("{:04}:", pos).dark_red();
+            }
             debug::number(value as u32, 8)
         } else {
             "---".to_owned()
         };
 
-        tmp.push_str(&format!(
-            "{} {: <18}",
-            format!("{:04}:", pos).dark_grey(),
-            displayable,
-        ));
+        tmp.push_str(&format!("{} {: <18}", position, displayable,));
+        col += 1;
     }
     out
 }
