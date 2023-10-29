@@ -63,16 +63,25 @@ pub fn register(reg: Register, vm: &VM) -> Vec<String> {
 
 pub fn registers(vm: &VM) -> Vec<String> {
     let mut out = Vec::new();
-    let registers = &[Register::X0, Register::X1, Register::X2, Register::X3];
+    let registers = &[
+        // SP
+        Register::X2,
+        // S0
+        Register::X8,
+        // A5
+        Register::X15,
+        // A4
+        Register::X14,
+    ];
     out.push(format!(
         "{} {}",
-        "PC:".dark_yellow(),
+        "PC: ".dark_yellow(),
         debug::number(vm.cpu.register.get(Register::PC), 32)
     ));
     for reg in registers {
         out.push(format!(
             "{} {}",
-            format!("{:?}:", reg).white(),
+            format!("{:04}", format!("{:?}:", reg)).dark_green(),
             debug::number(vm.cpu.register.get(*reg), 32)
         ));
     }
