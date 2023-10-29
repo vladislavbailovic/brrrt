@@ -425,7 +425,9 @@ impl VM {
             self.debug.extend_from_slice(&debug);
         }
 
-        self.cpu.register.set(rsd, pc + REGISTER_INCREMENT);
+        if rsd != Register::X0 {
+            self.cpu.register.set(rsd, pc + REGISTER_INCREMENT);
+        }
         if address > REGISTER_INCREMENT {
             self.cpu
                 .register
