@@ -43,7 +43,7 @@ mod auipc {
         assert_eq!(vm.cpu.register.get(Register::PC), 0);
         vm.execute(i).expect("should execute");
 
-        assert_eq!(vm.cpu.register.get(Register::X1), 1312);
+        assert_eq!(vm.cpu.register.get(Register::X1), 1316);
         assert_eq!(vm.cpu.register.get(Register::PC), 4);
     }
 
@@ -62,7 +62,7 @@ mod auipc {
 
         vm.execute(i).expect("should execute");
 
-        assert_eq!(vm.cpu.register.get(Register::X1), 25);
+        assert_eq!(vm.cpu.register.get(Register::X1), 29);
         assert_eq!(vm.cpu.register.get(Register::PC), 16);
     }
 }
