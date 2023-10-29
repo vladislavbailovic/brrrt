@@ -37,13 +37,17 @@ pub fn memory_at(start_addr: u32, vm: &VM) -> Vec<String> {
             out.push(tmp.clone());
             tmp = String::new();
         }
+        let value = vm.ram.byte_at(pos);
+        let displayable = if let Ok(value) = value {
+            debug::number(value as u32, 8)
+        } else {
+            "---".to_owned()
+        };
+
         tmp.push_str(&format!(
             "{} {: <18}",
             format!("{:04}:", pos).dark_grey(),
-            debug::number(
-                vm.ram.byte_at(pos).expect("invalid memory access") as u32,
-                8
-            )
+            displayable,
         ));
     }
     out

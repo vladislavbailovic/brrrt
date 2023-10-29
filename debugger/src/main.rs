@@ -28,11 +28,8 @@ fn main() -> Result<(), String> {
                 .expect("unable to clear");
             let prompt_top = if !program.is_done(&vm) {
                 let instr = debug_vm.last();
-                let pos = if instr.is_some() {
-                    render::at(
-                        render::Position { x: 0, y: 6 },
-                        render::instruction(&instr.unwrap()),
-                    );
+                let pos = if let Some(instr) = instr {
+                    render::at(render::Position { x: 0, y: 6 }, render::instruction(&instr));
                     8
                 } else {
                     6
