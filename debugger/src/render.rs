@@ -4,6 +4,7 @@ use crossterm::{
     style::{self, Stylize},
     QueueableCommand,
 };
+use disasm::disassemble;
 use std::io::{self, Write};
 
 #[derive(Debug)]
@@ -93,6 +94,7 @@ pub fn registers(vm: &VM) -> Vec<String> {
 
 pub fn instruction(instr: &Instruction) -> Vec<String> {
     vec![
+        format!("{}  {}", "src:".dark_green(), disassemble(instr.clone())),
         format!("{} {:?}", "inst:".dark_yellow(), instr),
         format!("{}  {}", "raw:".white(), debug::number(instr.raw, 32)),
     ]

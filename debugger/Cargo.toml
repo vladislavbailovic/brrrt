@@ -6,4 +6,5 @@ edition = "2021"
 [dependencies]
 brrrt-core = { path = "../core", features = [ "debug" ] }
 brrrt-cli = { path = "../cli" }
+disasm = { path = "../disasm" }
 crossterm = "0.27.0"
