@@ -30,7 +30,7 @@ fn main() -> Result<(), String> {
                 let instr = debug_vm.last();
                 let pos = if let Some(instr) = instr {
                     render::at(render::Position { x: 0, y: 6 }, render::instruction(&instr));
-                    8
+                    9
                 } else {
                     6
                 };
