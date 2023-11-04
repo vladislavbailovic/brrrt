@@ -93,7 +93,7 @@ fn load_execution_set_from(
     let elf = ELF::parse(&executable)?;
     if let Some(data) = elf.get(SectionName::Rodata) {
         for (i, &x) in data.get(&executable).iter().enumerate() {
-            vm.ram.set_word_at(i as u32, x)?;
+            vm.ram.set_word_at(i as u32 * 4, x)?;
         }
     }
     if let Some(data) = elf.get(SectionName::Text) {
