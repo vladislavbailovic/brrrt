@@ -3,7 +3,7 @@ mod section;
 
 use header::{ELFHeader, ELFHeaderError};
 pub use section::SectionName;
-use section::{Section, SectionError, SectionHeader, SectionHeaderError};
+use section::{Section, SectionHeader, SectionHeaderError, SectionNameError};
 
 #[derive(Debug)]
 pub enum Error {
@@ -12,30 +12,30 @@ pub enum Error {
 }
 
 impl From<ELFHeaderError> for Error {
-    fn from(e: ELFHeaderError) -> Self {
+    fn from(_e: ELFHeaderError) -> Self {
         #[cfg(feature = "trace")]
         {
-            eprintln!("ELF Header error: {:?}", e);
+            eprintln!("ELF Header error: {:?}", _e);
         }
         Self::HeaderParseError
     }
 }
 
 impl From<SectionHeaderError> for Error {
-    fn from(e: SectionHeaderError) -> Self {
+    fn from(_e: SectionHeaderError) -> Self {
         #[cfg(feature = "trace")]
         {
-            eprintln!("Section Header error: {:?}", e);
+            eprintln!("Section Header error: {:?}", _e);
         }
         Self::SectionParseError
     }
 }
 
-impl From<SectionError> for Error {
-    fn from(e: SectionError) -> Self {
+impl From<SectionNameError> for Error {
+    fn from(_e: SectionNameError) -> Self {
         #[cfg(feature = "trace")]
         {
-            eprintln!("Section name error: {:?}", e);
+            eprintln!("Section name error: {:?}", _e);
         }
         Self::SectionParseError
     }
@@ -49,19 +49,16 @@ pub struct ELF {
 
 impl ELF {
     pub fn get(&self, s: SectionName) -> Option<&Section> {
-        for x in &self.sections {
-            if x.name == s {
-                return Some(x);
-            }
-        }
-        None
+        self.sections.iter().find(|&x| x.name == s)
     }
 
     pub fn parse(executable: &[u8]) -> Result<Self, Error> {
         ELFHeader::is_valid(executable)?;
-        let mut e: ELF = Default::default();
+        let mut e: ELF = Self {
+            header: ELFHeader::parse(executable)?,
+            ..Default::default()
+        };
 
-        e.header = ELFHeader::parse(executable)?;
         if e.header.shnum > 0 {
             let names_offset = {
                 let field_off = 4 * 4; // "offset" is fifth 4-byte field
@@ -86,7 +83,7 @@ impl ELF {
                 let section = Section::parse(hdr, &executable[header_name_offset..]);
                 if section.is_ok() {
                     e.sections.push(section?);
-                } else if let Err(SectionError::UnknownSectionName) = section {
+                } else if let Err(SectionNameError::Unknown) = section {
                     continue;
                 }
             }

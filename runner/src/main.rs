@@ -6,7 +6,7 @@ fn main() -> Result<(), String> {
     let mut program: Program = Default::default();
 
     vm.cpu.initialize();
-    load_execution_set(&mut program, &mut vm);
+    load_execution_set(&mut program, &mut vm)?;
 
     while !program.is_done(&vm) {
         program.run(&mut vm)?;

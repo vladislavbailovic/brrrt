@@ -16,8 +16,8 @@ fn main() -> Result<(), String> {
 
     vm.cpu.initialize();
     debug_vm.cpu.initialize();
-    load_execution_set(&mut program, &mut vm);
-    load_execution_set(&mut program, &mut debug_vm);
+    load_execution_set(&mut program, &mut vm)?;
+    load_execution_set(&mut program, &mut debug_vm)?;
 
     let mut quit = false;
     let mut outcome = Vec::new();
@@ -125,9 +125,7 @@ fn apply_command(input: &str, vm: &mut VM) -> Option<Action> {
             vm.cpu.register.set(reg, val);
         }
         Command::SetMemory(address, byte) => {
-            vm.ram
-                .set_byte_at(address, byte)
-                .expect("invalid memory access");
+            vm.ram.set_byte_at(address, byte).ok()?;
         }
         Command::DumpRegister(reg) => {
             return Some(Action::Inspect(render::register(reg, vm)));

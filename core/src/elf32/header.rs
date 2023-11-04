@@ -20,15 +20,15 @@ impl ELFHeader {
             if let &[1] = &executable[4..5] {
                 // risc
                 if let &[0xF3] = &executable[0x12..0x13] {
-                    return Ok(());
+                    Ok(())
                 } else {
-                    return Err(ELFHeaderError::InvalidISA);
+                    Err(ELFHeaderError::InvalidISA)
                 }
             } else {
-                return Err(ELFHeaderError::InvalidClassFormat);
+                Err(ELFHeaderError::InvalidClassFormat)
             }
         } else {
-            return Err(ELFHeaderError::InvalidMagic);
+            Err(ELFHeaderError::InvalidMagic)
         }
     }
 

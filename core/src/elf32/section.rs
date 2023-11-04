@@ -7,13 +7,13 @@ pub enum SectionName {
 }
 
 impl TryFrom<String> for SectionName {
-    type Error = SectionError;
+    type Error = SectionNameError;
 
     fn try_from(s: String) -> Result<Self, Self::Error> {
         match s.as_str() {
             ".text" => Ok(Self::Text),
             ".rodata" => Ok(Self::Rodata),
-            _ => Err(SectionError::UnknownSectionName),
+            _ => Err(SectionNameError::Unknown),
         }
     }
 }
@@ -25,14 +25,14 @@ pub struct Section {
 }
 
 impl Section {
-    pub fn parse(hdr: SectionHeader, executable: &[u8]) -> Result<Self, SectionError> {
+    pub fn parse(hdr: SectionHeader, executable: &[u8]) -> Result<Self, SectionNameError> {
         if executable.is_empty() {
-            return Err(SectionError::MissingSectionName);
+            return Err(SectionNameError::Missing);
         }
         let mut name = String::with_capacity(MAX_NAME_LENGTH);
         for x in 0..MAX_NAME_LENGTH {
             if x > executable.len() - 1 {
-                return Err(SectionError::InvalidSectionName);
+                return Err(SectionNameError::Invalid);
             }
             if let &[c] = &executable[x..x + 1] {
                 if c == 0 {
@@ -40,11 +40,11 @@ impl Section {
                 }
                 name.push(c as char);
             } else {
-                return Err(SectionError::InvalidSectionName);
+                return Err(SectionNameError::Invalid);
             }
         }
-        if name.len() == 0 {
-            return Err(SectionError::MissingSectionName);
+        if name.is_empty() {
+            return Err(SectionNameError::Missing);
         }
         let name: SectionName = name.try_into()?;
         Ok(Self { name, header: hdr })
@@ -95,59 +95,55 @@ impl SectionHeader {
 
         sh.typ = {
             let entry = &executable[start..start + 4];
-            u32::from_le_bytes(entry.try_into().or(Err(SectionHeaderError::TypeError))?)
+            u32::from_le_bytes(entry.try_into().or(Err(SectionHeaderError::Type))?)
         };
         start += 4;
 
         sh.flags = {
             let entry = &executable[start..start + 4];
-            u32::from_le_bytes(entry.try_into().or(Err(SectionHeaderError::FlagsError))?)
+            u32::from_le_bytes(entry.try_into().or(Err(SectionHeaderError::Flags))?)
         };
         start += 4;
 
         sh.addr = {
             let entry = &executable[start..start + 4];
-            u32::from_le_bytes(entry.try_into().or(Err(SectionHeaderError::AddrError))?)
+            u32::from_le_bytes(entry.try_into().or(Err(SectionHeaderError::Addr))?)
         };
         start += 4;
 
         sh.offset = {
             let entry = &executable[start..start + 4];
-            u32::from_le_bytes(entry.try_into().or(Err(SectionHeaderError::OffsetError))?)
+            u32::from_le_bytes(entry.try_into().or(Err(SectionHeaderError::Offset))?)
         };
         start += 4;
 
         sh.size = {
             let entry = &executable[start..start + 4];
-            u32::from_le_bytes(entry.try_into().or(Err(SectionHeaderError::SizeError))?)
+            u32::from_le_bytes(entry.try_into().or(Err(SectionHeaderError::Size))?)
         };
         start += 4;
 
         sh.link = {
             let entry = &executable[start..start + 4];
-            u32::from_le_bytes(entry.try_into().or(Err(SectionHeaderError::LinkError))?)
+            u32::from_le_bytes(entry.try_into().or(Err(SectionHeaderError::Link))?)
         };
         start += 4;
 
         sh.info = {
             let entry = &executable[start..start + 4];
-            u32::from_le_bytes(entry.try_into().or(Err(SectionHeaderError::InfoError))?)
+            u32::from_le_bytes(entry.try_into().or(Err(SectionHeaderError::Info))?)
         };
         start += 4;
 
         sh.align = {
             let entry = &executable[start..start + 4];
-            u32::from_le_bytes(entry.try_into().or(Err(SectionHeaderError::AlignError))?)
+            u32::from_le_bytes(entry.try_into().or(Err(SectionHeaderError::Align))?)
         };
         start += 4;
 
         sh.entsize = {
             let entry = &executable[start..start + 4];
-            u32::from_le_bytes(
-                entry
-                    .try_into()
-                    .or(Err(SectionHeaderError::EntrySizeError))?,
-            )
+            u32::from_le_bytes(entry.try_into().or(Err(SectionHeaderError::EntrySize))?)
         };
 
         Ok(sh)
@@ -156,22 +152,22 @@ impl SectionHeader {
 
 #[derive(Debug)]
 pub(crate) enum SectionHeaderError {
-    TypeError,
-    FlagsError,
-    AddrError,
-    OffsetError,
-    SizeError,
-    LinkError,
-    InfoError,
-    AlignError,
-    EntrySizeError,
+    Type,
+    Flags,
+    Addr,
+    Offset,
+    Size,
+    Link,
+    Info,
+    Align,
+    EntrySize,
 }
 
 #[derive(Debug)]
-pub enum SectionError {
-    MissingSectionName,
-    InvalidSectionName,
-    UnknownSectionName,
+pub enum SectionNameError {
+    Missing,
+    Invalid,
+    Unknown,
 }
 
 #[cfg(test)]
@@ -182,7 +178,7 @@ mod section {
     fn parse_empty_should_fail() {
         Section::parse(Default::default(), &Vec::new()).map_or_else(
             |e| match e {
-                SectionError::MissingSectionName => assert!(true),
+                SectionNameError::Missing => assert!(true),
                 _ => assert!(false, "unexpected error: {:?}", e),
             },
             |_| assert!(false, "expected failure"),
@@ -193,7 +189,7 @@ mod section {
     fn parse_zero_byte_should_fail() {
         Section::parse(Default::default(), &vec![0]).map_or_else(
             |e| match e {
-                SectionError::MissingSectionName => assert!(true),
+                SectionNameError::Missing => assert!(true),
                 _ => assert!(false, "unexpected error: {:?}", e),
             },
             |_| assert!(false, "expected failure"),
@@ -204,7 +200,7 @@ mod section {
     fn parse_garbage_should_fail() {
         Section::parse(Default::default(), String::from("wat").as_bytes()).map_or_else(
             |e| match e {
-                SectionError::InvalidSectionName => assert!(true),
+                SectionNameError::Invalid => assert!(true),
                 _ => assert!(false, "unexpected error: {:?}", e),
             },
             |_| assert!(false, "expected failure"),
