@@ -34,73 +34,73 @@ impl ELFHeader {
 
     pub(crate) fn parse(executable: &[u8]) -> Result<Self, ELFHeaderError> {
         Self::is_valid(executable)?;
-        let mut e: Self = Default::default();
+        let e = Self {
+            entry: {
+                let entry = &executable[0x18..0x18 + 4];
+                u32::from_le_bytes(
+                    entry
+                        .try_into()
+                        .or(Err(ELFHeaderError::InvalidEntryPoint))?,
+                )
+            },
 
-        e.entry = {
-            let entry = &executable[0x18..0x18 + 4];
-            u32::from_le_bytes(
-                entry
-                    .try_into()
-                    .or(Err(ELFHeaderError::InvalidEntryPoint))?,
-            )
-        };
+            phoff: {
+                let entry = &executable[0x1C..0x1C + 4];
+                u32::from_le_bytes(
+                    entry
+                        .try_into()
+                        .or(Err(ELFHeaderError::InvalidProgramHeaderOffset))?,
+                )
+            },
+            phentsize: {
+                let entry = &executable[0x2A..0x2A + 2];
+                u16::from_le_bytes(
+                    entry
+                        .try_into()
+                        .or(Err(ELFHeaderError::InvalidProgramHeaderSize))?,
+                )
+            },
+            phnum: {
+                let entry = &executable[0x2C..0x2C + 2];
+                u16::from_le_bytes(
+                    entry
+                        .try_into()
+                        .or(Err(ELFHeaderError::InvalidProgramHeaderEntityCount))?,
+                )
+            },
 
-        e.phoff = {
-            let entry = &executable[0x1C..0x1C + 4];
-            u32::from_le_bytes(
-                entry
-                    .try_into()
-                    .or(Err(ELFHeaderError::InvalidProgramHeaderOffset))?,
-            )
-        };
-        e.phentsize = {
-            let entry = &executable[0x2A..0x2A + 2];
-            u16::from_le_bytes(
-                entry
-                    .try_into()
-                    .or(Err(ELFHeaderError::InvalidProgramHeaderSize))?,
-            )
-        };
-        e.phnum = {
-            let entry = &executable[0x2C..0x2C + 2];
-            u16::from_le_bytes(
-                entry
-                    .try_into()
-                    .or(Err(ELFHeaderError::InvalidProgramHeaderEntityCount))?,
-            )
-        };
-
-        e.shoff = {
-            let entry = &executable[0x20..0x20 + 4];
-            u32::from_le_bytes(
-                entry
-                    .try_into()
-                    .or(Err(ELFHeaderError::InvalidSectionHeaderOffset))?,
-            )
-        };
-        e.shentsize = {
-            let entry = &executable[0x2E..0x2E + 2];
-            u16::from_le_bytes(
-                entry
-                    .try_into()
-                    .or(Err(ELFHeaderError::InvalidSectionHeaderSize))?,
-            )
-        };
-        e.shnum = {
-            let entry = &executable[0x30..0x30 + 2];
-            u16::from_le_bytes(
-                entry
-                    .try_into()
-                    .or(Err(ELFHeaderError::InvalidSectionHeaderEntityCount))?,
-            )
-        };
-        e.shstrndx = {
-            let entry = &executable[0x32..0x32 + 2];
-            u16::from_le_bytes(
-                entry
-                    .try_into()
-                    .or(Err(ELFHeaderError::InvalidSectionHeaderNamesOffset))?,
-            )
+            shoff: {
+                let entry = &executable[0x20..0x20 + 4];
+                u32::from_le_bytes(
+                    entry
+                        .try_into()
+                        .or(Err(ELFHeaderError::InvalidSectionHeaderOffset))?,
+                )
+            },
+            shentsize: {
+                let entry = &executable[0x2E..0x2E + 2];
+                u16::from_le_bytes(
+                    entry
+                        .try_into()
+                        .or(Err(ELFHeaderError::InvalidSectionHeaderSize))?,
+                )
+            },
+            shnum: {
+                let entry = &executable[0x30..0x30 + 2];
+                u16::from_le_bytes(
+                    entry
+                        .try_into()
+                        .or(Err(ELFHeaderError::InvalidSectionHeaderEntityCount))?,
+                )
+            },
+            shstrndx: {
+                let entry = &executable[0x32..0x32 + 2];
+                u16::from_le_bytes(
+                    entry
+                        .try_into()
+                        .or(Err(ELFHeaderError::InvalidSectionHeaderNamesOffset))?,
+                )
+            },
         };
 
         Ok(e)
