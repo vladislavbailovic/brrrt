@@ -22,7 +22,7 @@ mod immediate {
         vm.execute(i).expect("should execute");
 
         assert_eq!(vm.cpu.register.get(Register::X1), 4);
-        assert_eq!(vm.cpu.register.get(Register::PC), 17);
+        assert_eq!(vm.cpu.register.get(Register::PC), 26);
     }
 
     #[test]
@@ -44,7 +44,7 @@ mod immediate {
         vm.execute(i).expect("should execute");
 
         assert_eq!(vm.cpu.register.get(Register::X1), 16);
-        assert_eq!(vm.cpu.register.get(Register::PC), 29);
+        assert_eq!(vm.cpu.register.get(Register::PC), 38);
     }
 
     #[test]
@@ -66,7 +66,7 @@ mod immediate {
         vm.execute(i).expect("should execute");
 
         assert_eq!(vm.cpu.register.get(Register::X0), 0);
-        assert_eq!(vm.cpu.register.get(Register::PC), 17);
+        assert_eq!(vm.cpu.register.get(Register::PC), 26);
     }
 }
 
