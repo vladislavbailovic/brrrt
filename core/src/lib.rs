@@ -1,6 +1,7 @@
 pub mod bitops;
 pub mod cpu;
 pub mod debug;
+pub mod elf32;
 pub mod memory;
 pub mod program;
 pub mod rv32i;
