@@ -1,9 +1,9 @@
-addi x1, x0, 3
-addi x1, x1, 5
-addi x1, x1, 4
-loop: addi x2, x2, 1
-bne x1, x2, loop
-addi x1, x1, 1
-add x2, x1, x2
-sw x2, 0(x16)
+addi x15, x0, 3
+addi x15, x15, 5
+addi x15, x15, 4
+loop: addi x14, x14, 1
+bne x15, x14, loop
+addi x15, x15, 1
+add x14, x15, x14
+sw x14, 0(x0)
 

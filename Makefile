@@ -20,8 +20,8 @@ $(OFILES): $(SFILES)
 	riscv32-unknown-linux-gnu-as -o $@ $(patsubst %.out,%.asm,$@)
 
 $(SFILES): $(CFILES)
-	riscv32-unknown-linux-gnu-gcc -S -o $@ $(patsubst %.asm,%.c,$@)
-	sed -E -e '/\s+\./d' -e '/^main:/d' -e 's/^\s+//' -i $@
+	riscv32-unknown-linux-gnu-gcc -S -march=rv32i -mabi=ilp32 -o $@ $(patsubst %.asm,%.c,$@)
+	# sed -E -e '/\s+\./d' -e '/^main:/d' -e 's/^\s+//' -i $@
 
 $(BFILES): $(OFILES)
 	riscv32-unknown-linux-gnu-objcopy -O binary $(patsubst %.bin, %.out, $@) $@ --only-section .text

@@ -494,7 +494,7 @@ impl VM {
 
         self.cpu
             .register
-            .set(Register::PC, (pc as i32 + immediate) as u32);
+            .set(Register::PC, (immediate * 2) as u32 + pc - REGISTER_INCREMENT); // TODO: Why *2??
         Ok(())
     }
 
@@ -701,9 +701,10 @@ impl VM {
 
         match (f3, f7) {
             (0b000, 0b0000000) => {
-                self.cpu
-                    .register
-                    .set(rsd, self.cpu.register.get(rs1) + self.cpu.register.get(rs2));
+                let lhs = self.cpu.register.get(rs1);
+                let rhs = self.cpu.register.get(rs2);
+                let result = lhs.overflowing_add(rhs).0 & 0x0000FFFF;
+                self.cpu.register.set(rsd, result);
                 Ok(())
             }
             (0b000, 0b0100000) => {

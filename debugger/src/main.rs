@@ -1,5 +1,5 @@
-use brrrt_cli::load_program;
-use brrrt_core::VM;
+use brrrt_cli::{load_program, load_execution_set};
+use brrrt_core::{VM, Program};
 use std::io;
 
 use crossterm::{execute, terminal};
@@ -12,10 +12,12 @@ mod render;
 fn main() -> Result<(), String> {
     let mut vm: VM = Default::default();
     let mut debug_vm: VM = Default::default();
-    let program = load_program();
+    let mut program: Program = Default::default();
 
     vm.cpu.initialize();
     debug_vm.cpu.initialize();
+    load_execution_set(&mut program, &mut vm);
+    load_execution_set(&mut program, &mut debug_vm);
 
     let mut quit = false;
     let mut outcome = Vec::new();

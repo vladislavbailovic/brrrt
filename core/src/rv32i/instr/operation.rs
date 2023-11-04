@@ -1,3 +1,4 @@
+use crate::debug;
 use super::format::Format;
 use super::part::Part;
 
@@ -57,7 +58,13 @@ impl TryFrom<u32> for Operation {
             x if x == Self::Math as u32 => Ok(Self::Math),
             x if x == Self::Call as u32 => Ok(Self::Call),
 
-            _ => Err("unknown opcode"),
+            _ => {
+                #[cfg(feature = "trace")]
+                {
+                    eprintln!("Raw: {:?}, Opcode: {:?}", debug::number(raw, 32), part.get(raw));
+                }
+                Err("unknown opcode")
+            }
         }
     }
 }
