@@ -1,5 +1,5 @@
 use brrrt_cli::load_execution_set;
-use brrrt_core::{VM, Program};
+use brrrt_core::{Program, VM};
 
 fn main() -> Result<(), String> {
     let mut vm: VM = Default::default();

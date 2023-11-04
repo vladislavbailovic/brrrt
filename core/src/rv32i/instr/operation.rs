@@ -1,6 +1,7 @@
-use crate::debug;
 use super::format::Format;
 use super::part::Part;
+#[cfg(feature = "trace")]
+use crate::debug;
 
 #[repr(u32)]
 #[derive(Debug, PartialEq, Copy, Clone)]
@@ -61,7 +62,11 @@ impl TryFrom<u32> for Operation {
             _ => {
                 #[cfg(feature = "trace")]
                 {
-                    eprintln!("Raw: {:?}, Opcode: {:?}", debug::number(raw, 32), part.get(raw));
+                    eprintln!(
+                        "Raw: {:?}, Opcode: {:?}",
+                        debug::number(raw, 32),
+                        part.get(raw)
+                    );
                 }
                 Err("unknown opcode")
             }

@@ -492,9 +492,10 @@ impl VM {
             self.debug.extend_from_slice(&debug);
         }
 
-        self.cpu
-            .register
-            .set(Register::PC, (immediate * 2) as u32 + pc - REGISTER_INCREMENT); // TODO: Why *2??
+        self.cpu.register.set(
+            Register::PC,
+            (immediate * 2) as u32 + pc - REGISTER_INCREMENT,
+        ); // TODO: Why *2??
         Ok(())
     }
 

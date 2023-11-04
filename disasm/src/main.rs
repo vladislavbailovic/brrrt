@@ -1,5 +1,5 @@
-use brrrt_cli::{load_program, load_execution_set};
-use brrrt_core::{VM, Program};
+use brrrt_cli::load_execution_set;
+use brrrt_core::{Program, VM};
 use disasm::disassemble;
 
 fn main() -> Result<(), String> {
