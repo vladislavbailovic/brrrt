@@ -118,22 +118,19 @@ impl VM {
             0b000 => {
                 // SB
                 self.ram
-                    .set_byte_at(address as u32, self.cpu.register.get(rs2) as u8)
-                    .expect("invalid memory access");
+                    .set_byte_at(address as u32, self.cpu.register.get(rs2) as u8)?;
                 Ok(())
             }
             0b001 => {
                 // SH
                 self.ram
-                    .set_hw_at(address as u32, self.cpu.register.get(rs2) as u16)
-                    .expect("invalid memory access");
+                    .set_hw_at(address as u32, self.cpu.register.get(rs2) as u16)?;
                 Ok(())
             }
             0b010 => {
                 // SW
                 self.ram
-                    .set_word_at(address as u32, self.cpu.register.get(rs2))
-                    .expect("invalid memory access");
+                    .set_word_at(address as u32, self.cpu.register.get(rs2))?;
                 Ok(())
             }
             _ => Err(InstructionError::InvalidOperation(Operation::Store)),
@@ -177,8 +174,7 @@ impl VM {
                 // LB
                 let value = self
                     .ram
-                    .byte_at(address.try_into().expect("invalid address"))
-                    .expect("invalid memory access");
+                    .byte_at(address.try_into().expect("invalid address"))?;
                 self.cpu
                     .register
                     .set(rsd, bitops::sign_extend(value as u32, 8) as u32);
@@ -188,8 +184,7 @@ impl VM {
                 // LH
                 let value = self
                     .ram
-                    .hw_at(address.try_into().expect("invalid address"))
-                    .expect("invalid memory access");
+                    .hw_at(address.try_into().expect("invalid address"))?;
                 self.cpu
                     .register
                     .set(rsd, bitops::sign_extend(value as u32, 16) as u32);
@@ -200,8 +195,7 @@ impl VM {
                 self.cpu.register.set(
                     rsd,
                     self.ram
-                        .word_at(address.try_into().expect("invalid address"))
-                        .expect("invalid memory access"),
+                        .word_at(address.try_into().expect("invalid address"))?,
                 );
                 Ok(())
             }
@@ -209,8 +203,7 @@ impl VM {
                 // LBU
                 let value = self
                     .ram
-                    .byte_at(address.try_into().expect("invalid address"))
-                    .expect("invalid memory access");
+                    .byte_at(address.try_into().expect("invalid address"))?;
                 self.cpu.register.set(rsd, value as u32);
                 Ok(())
             }
@@ -218,8 +211,7 @@ impl VM {
                 // LHU
                 let value = self
                     .ram
-                    .hw_at(address.try_into().expect("invalid address"))
-                    .expect("invalid memory access");
+                    .hw_at(address.try_into().expect("invalid address"))?;
                 self.cpu.register.set(rsd, value as u32);
                 Ok(())
             }

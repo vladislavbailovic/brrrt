@@ -1,5 +1,6 @@
 use brrrt_core::{
     elf32::{Error, SectionName, ELF},
+    memory::MemoryError,
     rv32i::instr::instruction::InstructionError,
     Program, VM,
 };
@@ -7,9 +8,10 @@ use std::{env, fs};
 
 #[derive(Debug)]
 pub enum RuntimeError {
-    UsageError,
-    ReadError,
-    LoadError,
+    Usage,
+    Read,
+    Load,
+    Execution,
 }
 
 impl From<std::io::Error> for RuntimeError {
@@ -18,7 +20,7 @@ impl From<std::io::Error> for RuntimeError {
         {
             eprintln!("Error reading file: {:?}", _e);
         }
-        Self::ReadError
+        Self::Read
     }
 }
 
@@ -28,13 +30,27 @@ impl From<Error> for RuntimeError {
         {
             eprintln!("Error loading file: {:?}", _e);
         }
-        Self::LoadError
+        Self::Load
     }
 }
 
 impl From<InstructionError> for RuntimeError {
     fn from(_e: InstructionError) -> Self {
-        Self::LoadError
+        #[cfg(feature = "trace")]
+        {
+            eprintln!("Instruction error: {:?}", _e);
+        }
+        Self::Execution
+    }
+}
+
+impl From<MemoryError> for RuntimeError {
+    fn from(_e: MemoryError) -> Self {
+        #[cfg(feature = "trace")]
+        {
+            eprintln!("Memory error: {:?}", _e);
+        }
+        Self::Execution
     }
 }
 
@@ -44,7 +60,7 @@ impl From<&str> for RuntimeError {
         {
             eprintln!("Error loading file: {:?}", _e);
         }
-        Self::LoadError
+        Self::Load
     }
 }
 
@@ -53,9 +69,10 @@ impl From<RuntimeError> for String {
         format!(
             "Runtime error: {}",
             match e {
-                RuntimeError::UsageError => "unexpected usage",
-                RuntimeError::ReadError => "read error",
-                RuntimeError::LoadError => "load error",
+                RuntimeError::Usage => "unexpected usage",
+                RuntimeError::Read => "read error",
+                RuntimeError::Load => "load error",
+                RuntimeError::Execution => "execution aborted",
             }
         )
     }
@@ -66,7 +83,7 @@ pub fn load_program() -> Result<Program, RuntimeError> {
     if args.len() < 2 {
         eprintln!("USAGE:");
         eprintln!("\t{}: <PROGRAM_BINFILE>", args[0]);
-        Err(RuntimeError::UsageError)
+        Err(RuntimeError::Usage)
     } else {
         load_program_from(&args[1])
     }
@@ -86,7 +103,7 @@ pub fn load_execution_set(program: &mut Program, vm: &mut VM) -> Result<(), Runt
     if args.len() < 2 {
         eprintln!("USAGE:");
         eprintln!("\t{}: <PROGRAM_BINFILE>", args[0]);
-        Err(RuntimeError::UsageError)
+        Err(RuntimeError::Usage)
     } else {
         load_execution_set_from(&args[1], program, vm)
     }

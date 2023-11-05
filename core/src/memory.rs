@@ -3,6 +3,19 @@ pub struct Memory {
     data: Box<[u8]>,
 }
 
+#[derive(Debug)]
+pub enum MemoryError {
+    LoadAddress(Access),
+    StoreAddress(Access),
+}
+
+#[derive(Debug)]
+pub enum Access {
+    Byte,
+    HalfWord,
+    Word,
+}
+
 impl Memory {
     pub(crate) fn new(pool: u32) -> Self {
         Self {
@@ -10,27 +23,27 @@ impl Memory {
         }
     }
 
-    pub fn byte_at(&self, address: u32) -> Result<u8, &'static str> {
+    pub fn byte_at(&self, address: u32) -> Result<u8, MemoryError> {
         let address = address as usize;
         if address >= self.data.len() {
-            return Err("invalid address");
+            return Err(MemoryError::LoadAddress(Access::Byte));
         }
         Ok(self.data[address])
     }
 
-    pub fn set_byte_at(&mut self, address: u32, b: u8) -> Result<(), &'static str> {
+    pub fn set_byte_at(&mut self, address: u32, b: u8) -> Result<(), MemoryError> {
         let address = address as usize;
         if address >= self.data.len() {
-            return Err("invalid address");
+            return Err(MemoryError::StoreAddress(Access::Byte));
         }
         self.data[address] = b;
         Ok(())
     }
 
-    pub fn hw_at(&self, address: u32) -> Result<u16, &'static str> {
+    pub fn hw_at(&self, address: u32) -> Result<u16, MemoryError> {
         let address = address as usize;
         if address + 1 >= self.data.len() {
-            return Err("invalid address");
+            return Err(MemoryError::LoadAddress(Access::HalfWord));
         }
         let b1 = self.data[address] as u16;
         let b2 = (self.data[address + 1] as u16) << 8;
@@ -55,10 +68,10 @@ impl Memory {
     }
 
     #[allow(clippy::identity_op)] // readability
-    pub fn set_hw_at(&mut self, address: u32, hw: u16) -> Result<(), &'static str> {
+    pub fn set_hw_at(&mut self, address: u32, hw: u16) -> Result<(), MemoryError> {
         let address = address as usize;
         if address + 1 >= self.data.len() {
-            return Err("invalid address");
+            return Err(MemoryError::StoreAddress(Access::HalfWord));
         }
         let b1 = hw as u8;
         let b2 = (hw >> 8) as u8;
@@ -85,10 +98,10 @@ impl Memory {
     }
 
     #[allow(clippy::identity_op)] // readability
-    pub fn word_at(&self, address: u32) -> Result<u32, &'static str> {
+    pub fn word_at(&self, address: u32) -> Result<u32, MemoryError> {
         let address = address as usize;
         if address + 3 >= self.data.len() {
-            return Err("invalid address");
+            return Err(MemoryError::LoadAddress(Access::Word));
         }
         let b1 = (self.data[address + 0] as u32) << 0;
         let b2 = (self.data[address + 1] as u32) << 8;
@@ -128,10 +141,10 @@ impl Memory {
     }
 
     #[allow(clippy::identity_op)] // readability
-    pub fn set_word_at(&mut self, address: u32, hw: u32) -> Result<(), &'static str> {
+    pub fn set_word_at(&mut self, address: u32, hw: u32) -> Result<(), MemoryError> {
         let address = address as usize;
         if address + 3 >= self.data.len() {
-            return Err("invalid address");
+            return Err(MemoryError::StoreAddress(Access::Word));
         }
         let b1 = (hw >> 0) as u8;
         let b2 = (hw >> 8) as u8;
