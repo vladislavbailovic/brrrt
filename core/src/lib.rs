@@ -64,7 +64,7 @@ impl VM {
             Operation::Branch => self.branch(i),
             Operation::Load => self.load(i),
             Operation::Store => self.store(i),
-            x => Err(OperationError::UnknownOpcode(i.raw).into()),
+            _ => Err(OperationError::UnknownOpcode(i.raw).into()),
         };
         if result.is_ok() {
             self.cpu.increment_pc();
@@ -76,16 +76,20 @@ impl VM {
         let rs1: Register = i
             .value(Part::Reg1)
             .or(Err(InstructionError::InvalidArgument(Part::Reg1)))?
-            .try_into()
-            .expect("invalid register");
+            .try_into()?;
         let rs2: Register = i
             .value(Part::Reg2)
             .or(Err(InstructionError::InvalidArgument(Part::Reg1)))?
-            .try_into()
-            .expect("invalid register");
-        let f3 = i.value(Part::Funct3).expect("invalid funct3");
-        let im40 = i.value(Part::Imm40).expect("invalid imm40");
-        let im115 = i.value(Part::Imm115).expect("invalid imm115");
+            .try_into()?;
+        let f3 = i
+            .value(Part::Funct3)
+            .or(Err(InstructionError::InvalidArgument(Part::Funct3)))?;
+        let im40 = i
+            .value(Part::Imm40)
+            .or(Err(InstructionError::InvalidArgument(Part::Imm40)))?;
+        let im115 = i
+            .value(Part::Imm115)
+            .or(Err(InstructionError::InvalidArgument(Part::Imm115)))?;
         let immediate = (im115 << 5) | im40; // https://stackoverflow.com/a/60239441
         let address = self.cpu.register.get(rs1) as i32 + bitops::sign_extend(immediate, 12);
 
@@ -140,15 +144,17 @@ impl VM {
         let rsd: Register = i
             .value(Part::Dest)
             .or(Err(InstructionError::InvalidArgument(Part::Dest)))?
-            .try_into()
-            .expect("invalid register");
+            .try_into()?;
         let rs1: Register = i
             .value(Part::Reg1)
             .or(Err(InstructionError::InvalidArgument(Part::Reg1)))?
-            .try_into()
-            .expect("invalid register");
-        let f3 = i.value(Part::Funct3).expect("invalid funct3");
-        let immediate = i.value(Part::Imm110).expect("invalid imm110");
+            .try_into()?;
+        let f3 = i
+            .value(Part::Funct3)
+            .or(Err(InstructionError::InvalidArgument(Part::Funct3)))?;
+        let immediate = i
+            .value(Part::Imm110)
+            .or(Err(InstructionError::InvalidArgument(Part::Imm110)))?;
         let address = self.cpu.register.get(rs1) as i32 + bitops::sign_extend(immediate, 12);
 
         #[cfg(any(feature = "trace", feature = "debug"))]
@@ -225,9 +231,10 @@ impl VM {
         let rsd: Register = i
             .value(Part::Dest)
             .or(Err(InstructionError::InvalidArgument(Part::Dest)))?
-            .try_into()
-            .expect("invalid register");
-        let immediate = i.value(Part::Imm3112).expect("invalid immediate 31:12");
+            .try_into()?;
+        let immediate = i
+            .value(Part::Imm3112)
+            .or(Err(InstructionError::InvalidArgument(Part::Imm3112)))?;
         let pc = self.cpu.register.get(Register::PC);
 
         #[cfg(any(feature = "trace", feature = "debug"))]
@@ -254,9 +261,10 @@ impl VM {
         let rsd: Register = i
             .value(Part::Dest)
             .or(Err(InstructionError::InvalidArgument(Part::Dest)))?
-            .try_into()
-            .expect("invalid register");
-        let immediate = i.value(Part::Imm3112).expect("invalid immediate 31:12");
+            .try_into()?;
+        let immediate = i
+            .value(Part::Imm3112)
+            .or(Err(InstructionError::InvalidArgument(Part::Imm3112)))?;
 
         #[cfg(any(feature = "trace", feature = "debug"))]
         {
@@ -281,14 +289,14 @@ impl VM {
         let rs1: Register = i
             .value(Part::Reg1)
             .or(Err(InstructionError::InvalidArgument(Part::Reg1)))?
-            .try_into()
-            .expect("invalid register");
+            .try_into()?;
         let rs2: Register = i
             .value(Part::Reg2)
             .or(Err(InstructionError::InvalidArgument(Part::Reg2)))?
-            .try_into()
-            .expect("invalid register");
-        let f3 = i.value(Part::Funct3).expect("invalid funct3");
+            .try_into()?;
+        let f3 = i
+            .value(Part::Funct3)
+            .or(Err(InstructionError::InvalidArgument(Part::Funct3)))?;
         let pc = (self.cpu.register.get(Register::PC) as i32) - REGISTER_INCREMENT as i32;
 
         #[cfg(any(feature = "trace", feature = "debug"))]
@@ -306,10 +314,18 @@ impl VM {
         }
 
         let immediate = 0
-            | (i.value(Part::B12b).expect("invalid B12b") << 11)
-            | (i.value(Part::B11b).expect("invalid B11b") << 10)
-            | (i.value(Part::Imm105).expect("invalid Imm105") << 4)
-            | (i.value(Part::Imm41).expect("invalid Imm41") << 0);
+            | (i.value(Part::B12b)
+                .or(Err(InstructionError::InvalidArgument(Part::B12b)))?
+                << 11)
+            | (i.value(Part::B11b)
+                .or(Err(InstructionError::InvalidArgument(Part::B11b)))?
+                << 10)
+            | (i.value(Part::Imm105)
+                .or(Err(InstructionError::InvalidArgument(Part::Imm105)))?
+                << 4)
+            | (i.value(Part::Imm41)
+                .or(Err(InstructionError::InvalidArgument(Part::Imm41)))?
+                << 0);
         #[cfg(any(feature = "trace", feature = "debug"))]
         {
             let debug = vec![
@@ -402,14 +418,14 @@ impl VM {
         let rsd: Register = i
             .value(Part::Dest)
             .or(Err(InstructionError::InvalidArgument(Part::Dest)))?
-            .try_into()
-            .expect("invalid register");
+            .try_into()?;
         let rs1: Register = i
             .value(Part::Reg1)
             .or(Err(InstructionError::InvalidArgument(Part::Reg1)))?
-            .try_into()
-            .expect("invalid register");
-        let immediate = i.value(Part::Imm110).expect("invalid immediate value 11:0");
+            .try_into()?;
+        let immediate = i
+            .value(Part::Imm110)
+            .or(Err(InstructionError::InvalidArgument(Part::Imm110)))?;
 
         let pc = self.cpu.register.get(Register::PC);
         let address =
@@ -446,13 +462,20 @@ impl VM {
         let rsd: Register = i
             .value(Part::Dest)
             .or(Err(InstructionError::InvalidArgument(Part::Dest)))?
-            .try_into()
-            .expect("invalid register");
+            .try_into()?;
         let immediate = 0
-            | (i.value(Part::B20j).expect("invalid b20j") << 19)
-            | (i.value(Part::Imm1912).expect("invalid immediate 1912") << 11)
-            | (i.value(Part::B11j).expect("invalid b11j") << 10)
-            | (i.value(Part::Imm101).expect("invalid immediate 10:1") << 0);
+            | (i.value(Part::B20j)
+                .or(Err(InstructionError::InvalidArgument(Part::B20j)))?
+                << 19)
+            | (i.value(Part::Imm1912)
+                .or(Err(InstructionError::InvalidArgument(Part::Imm1912)))?
+                << 11)
+            | (i.value(Part::B11j)
+                .or(Err(InstructionError::InvalidArgument(Part::B11j)))?
+                << 10)
+            | (i.value(Part::Imm101)
+                .or(Err(InstructionError::InvalidArgument(Part::Imm101)))?
+                << 0);
         let pc = self.cpu.register.get(Register::PC);
         if rsd != Register::X0 {
             self.cpu.register.set(rsd, pc + REGISTER_INCREMENT);
@@ -505,7 +528,9 @@ impl VM {
     }
 
     fn immediate_math(&mut self, i: Instruction) -> Result<(), InstructionError> {
-        let f3 = i.value(Part::Funct3).expect("invalid f3");
+        let f3 = i
+            .value(Part::Funct3)
+            .or(Err(InstructionError::InvalidArgument(Part::Funct3)))?;
 
         match f3 {
             0b001 | 0b101 => self.immediate_math_shift(i),
@@ -514,19 +539,21 @@ impl VM {
     }
 
     fn immediate_math_normal(&mut self, i: Instruction) -> Result<(), InstructionError> {
-        let f3 = i.value(Part::Funct3).expect("invalid f3");
-        let immediate = i.value(Part::Imm110).expect("invalid imm110");
+        let f3 = i
+            .value(Part::Funct3)
+            .or(Err(InstructionError::InvalidArgument(Part::Funct3)))?;
+        let immediate = i
+            .value(Part::Imm110)
+            .or(Err(InstructionError::InvalidArgument(Part::Imm110)))?;
         let immediate = bitops::sign_extend(immediate, 12);
         let rs1: Register = i
             .value(Part::Reg1)
             .or(Err(InstructionError::InvalidArgument(Part::Reg1)))?
-            .try_into()
-            .expect("invalid register");
+            .try_into()?;
         let rsd: Register = i
             .value(Part::Dest)
             .or(Err(InstructionError::InvalidArgument(Part::Dest)))?
-            .try_into()
-            .expect("invalid register");
+            .try_into()?;
 
         #[cfg(any(feature = "trace", feature = "debug"))]
         {
@@ -613,7 +640,9 @@ impl VM {
 
     fn immediate_math_shift(&mut self, i: Instruction) -> Result<(), InstructionError> {
         let f3 = i.value(Part::Funct3).unwrap();
-        let raw_immediate = i.value(Part::Imm110).expect("invalid imm110");
+        let raw_immediate = i
+            .value(Part::Imm110)
+            .or(Err(InstructionError::InvalidArgument(Part::Imm110)))?;
 
         let immediate = raw_immediate & 0b000_0000_0000_0000_0000_0000_0000_0001_1111;
         let shift = raw_immediate & 0b000_0000_0000_0000_0000_0000_1111_1110_0000;
@@ -621,13 +650,11 @@ impl VM {
         let rs1: Register = i
             .value(Part::Reg1)
             .or(Err(InstructionError::InvalidArgument(Part::Reg1)))?
-            .try_into()
-            .expect("invalid register");
+            .try_into()?;
         let rsd: Register = i
             .value(Part::Dest)
             .or(Err(InstructionError::InvalidArgument(Part::Dest)))?
-            .try_into()
-            .expect("invalid register");
+            .try_into()?;
 
         #[cfg(any(feature = "trace", feature = "debug"))]
         {
@@ -672,23 +699,24 @@ impl VM {
     }
 
     fn register_math(&mut self, i: Instruction) -> Result<(), InstructionError> {
-        let f3 = i.value(Part::Funct3).expect("invalid funct3");
-        let f7 = i.value(Part::Funct7).expect("invalid funct7");
+        let f3 = i
+            .value(Part::Funct3)
+            .or(Err(InstructionError::InvalidArgument(Part::Funct3)))?;
+        let f7 = i
+            .value(Part::Funct7)
+            .or(Err(InstructionError::InvalidArgument(Part::Funct7)))?;
         let rs1: Register = i
             .value(Part::Reg1)
             .or(Err(InstructionError::InvalidArgument(Part::Reg1)))?
-            .try_into()
-            .expect("invalid register");
+            .try_into()?;
         let rs2: Register = i
             .value(Part::Reg2)
             .or(Err(InstructionError::InvalidArgument(Part::Reg2)))?
-            .try_into()
-            .expect("invalid register");
+            .try_into()?;
         let rsd: Register = i
             .value(Part::Dest)
             .or(Err(InstructionError::InvalidArgument(Part::Dest)))?
-            .try_into()
-            .expect("invalid register");
+            .try_into()?;
 
         #[cfg(any(feature = "trace", feature = "debug"))]
         {

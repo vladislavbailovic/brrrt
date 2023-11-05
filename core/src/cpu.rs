@@ -85,7 +85,7 @@ pub enum Register {
 }
 
 impl TryFrom<u32> for Register {
-    type Error = &'static str;
+    type Error = RegisterError;
 
     fn try_from(raw: u32) -> Result<Self, Self::Error> {
         match raw {
@@ -123,13 +123,13 @@ impl TryFrom<u32> for Register {
 
             x if x == Self::PC as u32 => Ok(Self::PC),
 
-            _ => Err("unknown register"),
+            x => Err(RegisterError::InvalidRegisterNum(x)),
         }
     }
 }
 
 impl TryFrom<String> for Register {
-    type Error = &'static str;
+    type Error = RegisterError;
 
     fn try_from(regname: String) -> Result<Self, Self::Error> {
         if "PC" == &regname {
@@ -140,12 +140,12 @@ impl TryFrom<String> for Register {
             if Some('x') == first && regname.len() > 1 {
                 regname
                     .strip_prefix('x')
-                    .ok_or("invalid prefix")?
+                    .ok_or(RegisterError::InvalidNameFormat)?
                     .parse::<u32>()
-                    .map_err(|_: std::num::ParseIntError| "not a number")?
+                    .map_err(|_: std::num::ParseIntError| RegisterError::InvalidNameFormat)?
                     .try_into()
             } else {
-                Err("invalid register")
+                Err(RegisterError::InvalidRegister)
             }
         }
     }
@@ -191,4 +191,11 @@ impl TryInto<String> for Register {
             Self::X31 => Ok("x31".to_owned()),
         }
     }
+}
+
+#[derive(Debug)]
+pub enum RegisterError {
+    InvalidRegisterNum(u32),
+    InvalidNameFormat,
+    InvalidRegister,
 }
