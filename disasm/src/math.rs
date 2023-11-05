@@ -38,7 +38,7 @@ pub fn register(i: Instruction) -> String {
         (0b111, 0b0000000) => "and".to_owned(),
         _ => unreachable!("invalid register math operation"),
     };
-    format!("{} {}, {}, {}", op, rsd, rs1, rs2)
+    format!("{}\t{}, {}, {}", op, rsd, rs1, rs2)
 }
 
 pub fn immediate(i: Instruction) -> String {
@@ -67,7 +67,7 @@ pub fn immediate(i: Instruction) -> String {
                 (0b101, 0b0100000) => "srai",
                 _ => unreachable!("invalid immediate math operation"),
             };
-            format!("{} {}, {}, {}", op, rsd, rs1, immediate)
+            format!("{}\t{}, {}, {}", op, rsd, rs1, immediate)
         }
         _ => {
             // immediate_math_normal
@@ -82,7 +82,7 @@ pub fn immediate(i: Instruction) -> String {
                 0b111 => "xori".to_owned(),
                 _ => unreachable!("invalid immediate math operation"),
             };
-            format!("{} {}, {}, {}", op, rsd, rs1, immediate)
+            format!("{}\t{}, {}, {}", op, rsd, rs1, immediate)
         }
     }
 }
@@ -95,7 +95,7 @@ mod immediate_math {
     fn normal() {
         let raw = 0x00d00093; // addi x1, x0, 13
         let i = Instruction::parse(raw).expect("unable to parse");
-        let expected = "addi x1, x0, 13".to_owned();
+        let expected = "addi\tx1, x0, 13".to_owned();
         assert_eq!(immediate(i), expected);
     }
 
@@ -103,7 +103,7 @@ mod immediate_math {
     fn shift() {
         let raw = 0x00c09a93; // slli x21, x1, 12
         let i = Instruction::parse(raw).expect("unable to parse");
-        let expected = "slli x21, x1, 12".to_owned();
+        let expected = "slli\tx21, x1, 12".to_owned();
         assert_eq!(immediate(i), expected);
     }
 }
@@ -116,7 +116,7 @@ mod register_math {
     fn add() {
         let raw = 0x003100b3; // add x1, x2, x3
         let i = Instruction::parse(raw).expect("unable to parse");
-        let expected = "add x1, x2, x3".to_owned();
+        let expected = "add\tx1, x2, x3".to_owned();
         assert_eq!(register(i), expected);
     }
 }

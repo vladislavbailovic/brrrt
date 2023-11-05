@@ -47,7 +47,7 @@ pub fn unconditional(i: Instruction) -> String {
         eprintln!("\t\t- sim: {}", debug::number(immediate, 20));
     }
     let rsd: String = rsd.try_into().unwrap();
-    format!("jal {}, {}", rsd, immediate * 2) // TODO: why *2???
+    format!("jal\t{}, {}", rsd, immediate * 2) // TODO: why *2???
 }
 
 pub fn register(i: Instruction) -> String {
@@ -64,7 +64,7 @@ pub fn register(i: Instruction) -> String {
         .expect("invalid register");
     let rs1: String = rs1.try_into().unwrap();
     let immediate = i.value(Part::Imm110).expect("invalid immediate value 11:0");
-    format!("jalr {}, {}, {}", rsd, rs1, immediate)
+    format!("jalr\t{}, {}, {}", rsd, rs1, immediate)
 }
 
 #[cfg(test)]
@@ -75,7 +75,7 @@ mod unconditional_jump {
     fn to_zero() {
         let raw = 0x0000006f;
         let i = Instruction::parse(raw).expect("unable to parse");
-        let expected = "jal x0, 0".to_owned();
+        let expected = "jal\tx0, 0".to_owned();
         assert_eq!(unconditional(i), expected);
     }
 
@@ -83,7 +83,7 @@ mod unconditional_jump {
     fn to_immediate_8() {
         let raw = 0x0080066f;
         let i = Instruction::parse(raw).expect("unable to parse");
-        let expected = "jal x12, 8".to_owned();
+        let expected = "jal\tx12, 8".to_owned();
         assert_eq!(unconditional(i), expected);
     }
 
@@ -91,7 +91,7 @@ mod unconditional_jump {
     fn to_immediate_16() {
         let raw = 0x0100006f;
         let i = Instruction::parse(raw).expect("unable to parse");
-        let expected = "jal x0, 16".to_owned();
+        let expected = "jal\tx0, 16".to_owned();
         assert_eq!(unconditional(i), expected);
     }
 
@@ -99,7 +99,7 @@ mod unconditional_jump {
     fn to_immediate_24() {
         let raw = 0x018006ef;
         let i = Instruction::parse(raw).expect("unable to parse");
-        let expected = "jal x13, 24".to_owned();
+        let expected = "jal\tx13, 24".to_owned();
         assert_eq!(unconditional(i), expected);
     }
 
@@ -107,7 +107,7 @@ mod unconditional_jump {
     fn to_immediate_32() {
         let raw = 0x020006ef;
         let i = Instruction::parse(raw).expect("unable to parse");
-        let expected = "jal x13, 32".to_owned();
+        let expected = "jal\tx13, 32".to_owned();
         assert_eq!(unconditional(i), expected);
     }
 
@@ -115,7 +115,7 @@ mod unconditional_jump {
     fn to_immediate_48() {
         let raw = 0x030006ef;
         let i = Instruction::parse(raw).expect("unable to parse");
-        let expected = "jal x13, 48".to_owned();
+        let expected = "jal\tx13, 48".to_owned();
         assert_eq!(unconditional(i), expected);
     }
 
@@ -123,7 +123,7 @@ mod unconditional_jump {
     fn to_immediate_64() {
         let raw = 0x040006ef;
         let i = Instruction::parse(raw).expect("unable to parse");
-        let expected = "jal x13, 64".to_owned();
+        let expected = "jal\tx13, 64".to_owned();
         assert_eq!(unconditional(i), expected);
     }
 
@@ -131,7 +131,7 @@ mod unconditional_jump {
     fn to_immediate_128() {
         let raw = 0x080006ef;
         let i = Instruction::parse(raw).expect("unable to parse");
-        let expected = "jal x13, 128".to_owned();
+        let expected = "jal\tx13, 128".to_owned();
         assert_eq!(unconditional(i), expected);
     }
 }
@@ -144,7 +144,7 @@ mod register_jump {
     fn to_zero() {
         let raw = 0x000680e7;
         let i = Instruction::parse(raw).expect("unable to parse");
-        let expected = "jalr x1, x13, 0".to_owned();
+        let expected = "jalr\tx1, x13, 0".to_owned();
         assert_eq!(register(i), expected);
     }
 
@@ -152,7 +152,7 @@ mod register_jump {
     fn to_immediate_4() {
         let raw = 0x004680e7;
         let i = Instruction::parse(raw).expect("unable to parse");
-        let expected = "jalr x1, x13, 4".to_owned();
+        let expected = "jalr\tx1, x13, 4".to_owned();
         assert_eq!(register(i), expected);
     }
 
@@ -160,7 +160,7 @@ mod register_jump {
     fn to_immediate_8() {
         let raw = 0x00868667;
         let i = Instruction::parse(raw).expect("unable to parse");
-        let expected = "jalr x12, x13, 8".to_owned();
+        let expected = "jalr\tx12, x13, 8".to_owned();
         assert_eq!(register(i), expected);
     }
 
@@ -168,7 +168,7 @@ mod register_jump {
     fn to_immediate_16() {
         let raw = 0x01068667;
         let i = Instruction::parse(raw).expect("unable to parse");
-        let expected = "jalr x12, x13, 16".to_owned();
+        let expected = "jalr\tx12, x13, 16".to_owned();
         assert_eq!(register(i), expected);
     }
 
@@ -176,7 +176,7 @@ mod register_jump {
     fn to_immediate_162() {
         let raw = 0x0a268667;
         let i = Instruction::parse(raw).expect("unable to parse");
-        let expected = "jalr x12, x13, 162".to_owned();
+        let expected = "jalr\tx12, x13, 162".to_owned();
         assert_eq!(register(i), expected);
     }
 }

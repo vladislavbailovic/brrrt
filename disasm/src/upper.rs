@@ -11,7 +11,7 @@ pub fn load(i: Instruction) -> String {
         .expect("invalid register");
     let rsd: String = rsd.try_into().unwrap();
     let immediate = i.value(Part::Imm3112).expect("invalid immediate 31:12");
-    format!("lui {}, {}", rsd, immediate)
+    format!("lui\t{}, {}", rsd, immediate)
 }
 
 pub fn add(i: Instruction) -> String {
@@ -22,7 +22,7 @@ pub fn add(i: Instruction) -> String {
         .expect("invalid register");
     let rsd: String = rsd.try_into().unwrap();
     let immediate = i.value(Part::Imm3112).expect("invalid immediate 31:12");
-    format!("auipc {}, {}", rsd, immediate)
+    format!("auipc\t{}, {}", rsd, immediate)
 }
 
 #[cfg(test)]
@@ -33,7 +33,7 @@ mod load_test {
     fn upper_immediate_0() {
         let raw = 0x000000b7;
         let i = Instruction::parse(raw).expect("should parse");
-        let expected = "lui x1, 0".to_owned();
+        let expected = "lui\tx1, 0".to_owned();
         assert_eq!(load(i), expected);
     }
 
@@ -41,7 +41,7 @@ mod load_test {
     fn upper_immediate_1312() {
         let raw = 0x005200b7;
         let i = Instruction::parse(raw).expect("should parse");
-        let expected = "lui x1, 1312".to_owned();
+        let expected = "lui\tx1, 1312".to_owned();
         assert_eq!(load(i), expected);
     }
 
@@ -49,7 +49,7 @@ mod load_test {
     fn upper_immediate_13_12() {
         let raw = 0x0000c6b7;
         let i = Instruction::parse(raw).expect("should parse");
-        let expected = "lui x13, 12".to_owned();
+        let expected = "lui\tx13, 12".to_owned();
         assert_eq!(load(i), expected);
     }
 }
@@ -62,7 +62,7 @@ mod add_test {
     fn upper_immediate_0() {
         let raw = 0x00000097;
         let i = Instruction::parse(raw).expect("should parse");
-        let expected = "auipc x1, 0".to_owned();
+        let expected = "auipc\tx1, 0".to_owned();
         assert_eq!(add(i), expected);
     }
 
@@ -70,7 +70,7 @@ mod add_test {
     fn upper_immediate_1312() {
         let raw = 0x00520097;
         let i = Instruction::parse(raw).expect("should parse");
-        let expected = "auipc x1, 1312".to_owned();
+        let expected = "auipc\tx1, 1312".to_owned();
         assert_eq!(add(i), expected);
     }
 
@@ -78,7 +78,7 @@ mod add_test {
     fn upper_immediate_13_12() {
         let raw = 0x0000c697;
         let i = Instruction::parse(raw).expect("should parse");
-        let expected = "auipc x13, 12".to_owned();
+        let expected = "auipc\tx13, 12".to_owned();
         assert_eq!(add(i), expected);
     }
 }

@@ -29,7 +29,7 @@ pub fn load(i: Instruction) -> String {
         0b011 => "ld".to_owned(),
         _ => unreachable!("invalid load operation"),
     };
-    format!("{} {}, {}({})", op, rsd, immediate, rs1)
+    format!("{}\t{}, {}({})", op, rsd, immediate, rs1)
 }
 
 pub fn store(i: Instruction) -> String {
@@ -57,7 +57,7 @@ pub fn store(i: Instruction) -> String {
         0b011 => "sd".to_owned(),
         _ => unreachable!("invalid store instruction"),
     };
-    format!("{} {}, {}({})", op, rs2, immediate, rs1)
+    format!("{}\t{}, {}({})", op, rs2, immediate, rs1)
 }
 
 #[cfg(test)]
@@ -68,7 +68,7 @@ mod load_test {
     fn load_ld_0() {
         let raw = 0x0006b603;
         let i = Instruction::parse(raw).expect("unable to parse");
-        let expected = "ld x12, 0(x13)".to_owned();
+        let expected = "ld\tx12, 0(x13)".to_owned();
         assert_eq!(load(i), expected);
     }
 
@@ -76,7 +76,7 @@ mod load_test {
     fn load_ld_13() {
         let raw = 0x00c6b603;
         let i = Instruction::parse(raw).expect("unable to parse");
-        let expected = "ld x12, 12(x13)".to_owned();
+        let expected = "ld\tx12, 12(x13)".to_owned();
         assert_eq!(load(i), expected);
     }
 
@@ -84,7 +84,7 @@ mod load_test {
     fn load_lb_0() {
         let raw = 0x00068603;
         let i = Instruction::parse(raw).expect("unable to parse");
-        let expected = "lb x12, 0(x13)".to_owned();
+        let expected = "lb\tx12, 0(x13)".to_owned();
         assert_eq!(load(i), expected);
     }
 
@@ -92,7 +92,7 @@ mod load_test {
     fn load_lb_13() {
         let raw = 0x00c68603;
         let i = Instruction::parse(raw).expect("unable to parse");
-        let expected = "lb x12, 12(x13)".to_owned();
+        let expected = "lb\tx12, 12(x13)".to_owned();
         assert_eq!(load(i), expected);
     }
 }
@@ -105,7 +105,7 @@ mod store_test {
     fn test_sd_0() {
         let raw = 0x0100b023;
         let i = Instruction::parse(raw).expect("unable to parse");
-        let expected = "sd x16, 0(x1)".to_owned();
+        let expected = "sd\tx16, 0(x1)".to_owned();
         assert_eq!(store(i), expected);
     }
 
@@ -113,7 +113,7 @@ mod store_test {
     fn test_sd_32() {
         let raw = 0x0300b023;
         let i = Instruction::parse(raw).expect("unable to parse");
-        let expected = "sd x16, 32(x1)".to_owned();
+        let expected = "sd\tx16, 32(x1)".to_owned();
         assert_eq!(store(i), expected);
     }
 }

@@ -35,7 +35,7 @@ pub fn disassemble(i: Instruction) -> String {
         0b111 => "bgeu".to_owned(),
         _ => unreachable!("invalid branch instruction"),
     };
-    format!("{} {}, {}, {}", op, rs1, rs2, address)
+    format!("{}\t{}, {}, {}", op, rs1, rs2, address)
 }
 
 #[cfg(test)]
@@ -51,12 +51,12 @@ mod test {
 
         let raw = 0x00d60463; // bne x12, x13, 0
         let i = Instruction::parse(raw).expect("unable to parse");
-        let expected = "beq x12, x13, 8".to_owned(); // skip next (jal)
+        let expected = "beq\tx12, x13, 8".to_owned(); // skip next (jal)
         assert_eq!(disassemble(i), expected);
 
         let raw = 0xffdff06f;
         let i = Instruction::parse(raw).expect("unable to parse");
-        let expected = "jal x0, -4".to_owned(); // because it'll be added to PC
+        let expected = "jal\tx0, -4".to_owned(); // because it'll be added to PC
         assert_eq!(jump::unconditional(i), expected);
     }
 
@@ -68,12 +68,12 @@ mod test {
 
         let raw = 0x00d60463; // bne x12, x13, 12
         let i = Instruction::parse(raw).expect("unable to parse");
-        let expected = "beq x12, x13, 8".to_owned(); // skip next (jal)
+        let expected = "beq\tx12, x13, 8".to_owned(); // skip next (jal)
         assert_eq!(disassemble(i), expected);
 
         let raw = 0x0080006f;
         let i = Instruction::parse(raw).expect("unable to parse");
-        let expected = "jal x0, 8".to_owned(); // because it'll be added to PC
+        let expected = "jal\tx0, 8".to_owned(); // because it'll be added to PC
         assert_eq!(jump::unconditional(i), expected);
     }
 
@@ -85,12 +85,12 @@ mod test {
 
         let raw = 0x00d60463; // bne x12, x13, 32
         let i = Instruction::parse(raw).expect("unable to parse");
-        let expected = "beq x12, x13, 8".to_owned(); // skip next (jal)
+        let expected = "beq\tx12, x13, 8".to_owned(); // skip next (jal)
         assert_eq!(disassemble(i), expected);
 
         let raw = 0x01c0006f;
         let i = Instruction::parse(raw).expect("unable to parse");
-        let expected = "jal x0, 28".to_owned(); // because it'll be added to PC
+        let expected = "jal\tx0, 28".to_owned(); // because it'll be added to PC
         assert_eq!(jump::unconditional(i), expected);
     }
 
@@ -102,12 +102,12 @@ mod test {
 
         let raw = 0x00d61463; // beq x12, x13, 0
         let i = Instruction::parse(raw).expect("unable to parse");
-        let expected = "bne x12, x13, 8".to_owned(); // skip next (jal)
+        let expected = "bne\tx12, x13, 8".to_owned(); // skip next (jal)
         assert_eq!(disassemble(i), expected);
 
         let raw = 0xffdff06f;
         let i = Instruction::parse(raw).expect("unable to parse");
-        let expected = "jal x0, -4".to_owned(); // because it'll be added to PC
+        let expected = "jal\tx0, -4".to_owned(); // because it'll be added to PC
         assert_eq!(jump::unconditional(i), expected);
     }
 
@@ -119,12 +119,12 @@ mod test {
 
         let raw = 0x00d61463; // beq x12, x13, 32
         let i = Instruction::parse(raw).expect("unable to parse");
-        let expected = "bne x12, x13, 8".to_owned(); // skip next (jal)
+        let expected = "bne\tx12, x13, 8".to_owned(); // skip next (jal)
         assert_eq!(disassemble(i), expected);
 
         let raw = 0x01c0006f;
         let i = Instruction::parse(raw).expect("unable to parse");
-        let expected = "jal x0, 28".to_owned(); // because it'll be added to PC
+        let expected = "jal\tx0, 28".to_owned(); // because it'll be added to PC
         assert_eq!(jump::unconditional(i), expected);
     }
 
@@ -136,12 +136,12 @@ mod test {
 
         let raw = 0x00d65463; // blt x12, x13, 0
         let i = Instruction::parse(raw).expect("unable to parse");
-        let expected = "bge x12, x13, 8".to_owned(); // skip next (jal)
+        let expected = "bge\tx12, x13, 8".to_owned(); // skip next (jal)
         assert_eq!(disassemble(i), expected);
 
         let raw = 0xffdff06f;
         let i = Instruction::parse(raw).expect("unable to parse");
-        let expected = "jal x0, -4".to_owned(); // because it'll be added to PC
+        let expected = "jal\tx0, -4".to_owned(); // because it'll be added to PC
         assert_eq!(jump::unconditional(i), expected);
     }
 }
