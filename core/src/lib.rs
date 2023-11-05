@@ -172,9 +172,11 @@ impl VM {
         match f3 {
             0b000 => {
                 // LB
-                let value = self
-                    .ram
-                    .byte_at(address.try_into().expect("invalid address"))?;
+                let value = self.ram.byte_at(
+                    address
+                        .try_into()
+                        .or(Err(InstructionError::InvalidMemory))?,
+                )?;
                 self.cpu
                     .register
                     .set(rsd, bitops::sign_extend(value as u32, 8) as u32);
@@ -182,9 +184,11 @@ impl VM {
             }
             0b001 => {
                 // LH
-                let value = self
-                    .ram
-                    .hw_at(address.try_into().expect("invalid address"))?;
+                let value = self.ram.hw_at(
+                    address
+                        .try_into()
+                        .or(Err(InstructionError::InvalidMemory))?,
+                )?;
                 self.cpu
                     .register
                     .set(rsd, bitops::sign_extend(value as u32, 16) as u32);
@@ -194,24 +198,31 @@ impl VM {
                 // LW
                 self.cpu.register.set(
                     rsd,
-                    self.ram
-                        .word_at(address.try_into().expect("invalid address"))?,
+                    self.ram.word_at(
+                        address
+                            .try_into()
+                            .or(Err(InstructionError::InvalidMemory))?,
+                    )?,
                 );
                 Ok(())
             }
             0b100 => {
                 // LBU
-                let value = self
-                    .ram
-                    .byte_at(address.try_into().expect("invalid address"))?;
+                let value = self.ram.byte_at(
+                    address
+                        .try_into()
+                        .or(Err(InstructionError::InvalidMemory))?,
+                )?;
                 self.cpu.register.set(rsd, value as u32);
                 Ok(())
             }
             0b101 => {
                 // LHU
-                let value = self
-                    .ram
-                    .hw_at(address.try_into().expect("invalid address"))?;
+                let value = self.ram.hw_at(
+                    address
+                        .try_into()
+                        .or(Err(InstructionError::InvalidMemory))?,
+                )?;
                 self.cpu.register.set(rsd, value as u32);
                 Ok(())
             }

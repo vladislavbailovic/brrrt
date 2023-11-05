@@ -67,13 +67,13 @@ impl From<OperationError> for InstructionError {
 }
 
 impl From<RegisterError> for InstructionError {
-    fn from(e: RegisterError) -> Self {
+    fn from(_e: RegisterError) -> Self {
         Self::InvalidRegister
     }
 }
 
 impl From<MemoryError> for InstructionError {
-    fn from(e: MemoryError) -> Self {
+    fn from(_e: MemoryError) -> Self {
         Self::InvalidMemory
     }
 }
@@ -85,7 +85,7 @@ impl From<InstructionError> for String {
             InstructionError::InvalidArgument(part) => format!("Unknown argument: {:?}", part),
             InstructionError::UnknownOperation(raw) => format!("Unknown operation: {}", raw),
             InstructionError::InvalidRegister => "Invalid register".to_owned(), // TODO: wat
-            InstructionError::InvalidMemory => "Invalid memory".to_owned(), // TODO: wat
+            InstructionError::InvalidMemory => "Invalid memory".to_owned(),     // TODO: wat
             InstructionError::Value => "Unable to extract value".to_owned(),
             #[cfg(test)]
             InstructionError::Get => "Unable to get part".to_owned(),
