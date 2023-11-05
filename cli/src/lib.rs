@@ -1,9 +1,11 @@
 use brrrt_core::{
     elf32::{Error, SectionName, ELF},
+    rv32i::instr::instruction::InstructionError,
     Program, VM,
 };
 use std::{env, fs};
 
+#[derive(Debug)]
 pub enum RuntimeError {
     UsageError,
     ReadError,
@@ -14,7 +16,7 @@ impl From<std::io::Error> for RuntimeError {
     fn from(_e: std::io::Error) -> Self {
         #[cfg(feature = "trace")]
         {
-            eprintln!("Error loading file: {:?}", _e);
+            eprintln!("Error reading file: {:?}", _e);
         }
         Self::ReadError
     }
@@ -26,6 +28,12 @@ impl From<Error> for RuntimeError {
         {
             eprintln!("Error loading file: {:?}", _e);
         }
+        Self::LoadError
+    }
+}
+
+impl From<InstructionError> for RuntimeError {
+    fn from(_e: InstructionError) -> Self {
         Self::LoadError
     }
 }

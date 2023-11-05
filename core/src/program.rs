@@ -1,6 +1,6 @@
 #[cfg(feature = "trace")]
 use crate::debug;
-use crate::{Instruction, Memory, Register, REGISTER_INCREMENT, VM};
+use crate::{Instruction, InstructionError, Memory, Register, REGISTER_INCREMENT, VM};
 
 #[derive(Default)]
 pub struct Program {
@@ -35,7 +35,7 @@ impl Program {
         (vm.cpu.register.get(Register::PC) / REGISTER_INCREMENT) as usize == self.end
     }
 
-    pub fn run(&self, vm: &mut VM) -> Result<(), String> {
+    pub fn run(&self, vm: &mut VM) -> Result<(), InstructionError> {
         for x in 0..self.end {
             self.step(vm, x)?;
             if self.is_done(vm) {
@@ -45,13 +45,13 @@ impl Program {
         Ok(())
     }
 
-    pub fn peek(&self, vm: &VM) -> Result<Instruction, &str> {
+    pub fn peek(&self, vm: &VM) -> Result<Instruction, InstructionError> {
         let pc = vm.cpu.register.get(Register::PC);
         let code = self.rom.word_at(pc).expect("invalid memory access");
         Instruction::parse(code)
     }
 
-    pub fn step(&self, vm: &mut VM, _iteration: usize) -> Result<(), &str> {
+    pub fn step(&self, vm: &mut VM, _iteration: usize) -> Result<(), InstructionError> {
         let pc = vm.cpu.register.get(Register::PC);
         let code = self.rom.word_at(pc).expect("invalid memory access");
         #[cfg(feature = "trace")]

@@ -1,8 +1,8 @@
-use brrrt_cli::load_execution_set;
+use brrrt_cli::{load_execution_set, RuntimeError};
 use brrrt_core::{Program, VM};
 use disasm::disassemble;
 
-fn main() -> Result<(), String> {
+fn main() -> Result<(), RuntimeError> {
     let mut vm: VM = Default::default();
     let mut program: Program = Default::default();
     load_execution_set(&mut program, &mut vm)?;

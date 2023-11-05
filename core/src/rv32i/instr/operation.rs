@@ -40,8 +40,12 @@ impl Operation {
     }
 }
 
+pub enum OperationError {
+    UnknownOpcode(u32),
+}
+
 impl TryFrom<u32> for Operation {
-    type Error = &'static str;
+    type Error = OperationError;
 
     fn try_from(raw: u32) -> Result<Self, Self::Error> {
         let part = Part::Opcode;
@@ -68,7 +72,7 @@ impl TryFrom<u32> for Operation {
                         part.get(raw)
                     );
                 }
-                Err("unknown opcode")
+                Err(OperationError::UnknownOpcode(raw))
             }
         }
     }

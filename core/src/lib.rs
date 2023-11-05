@@ -25,7 +25,11 @@ mod store;
 pub use cpu::{Register, Registers, CPU, REGISTER_INCREMENT};
 pub use memory::Memory;
 pub use program::Program;
-use rv32i::{instr::instruction::Instruction, instr::operation::Operation, instr::part::Part};
+use rv32i::{
+    instr::instruction::{Instruction, InstructionError},
+    instr::operation::{Operation, OperationError},
+    instr::part::Part,
+};
 
 #[derive(Default, Debug)]
 pub struct VM {
@@ -47,7 +51,7 @@ impl VM {
         self.last.clone()
     }
 
-    pub fn execute(&mut self, i: Instruction) -> Result<(), &'static str> {
+    pub fn execute(&mut self, i: Instruction) -> Result<(), InstructionError> {
         self.debug.clear();
         self.last = Some(i.clone());
         let result = match i.opcode {
@@ -60,7 +64,7 @@ impl VM {
             Operation::Branch => self.branch(i),
             Operation::Load => self.load(i),
             Operation::Store => self.store(i),
-            _ => Err("unknown opcode"),
+            x => Err(OperationError::UnknownOpcode(i.raw).into()),
         };
         if result.is_ok() {
             self.cpu.increment_pc();
@@ -68,15 +72,15 @@ impl VM {
         result
     }
 
-    fn store(&mut self, i: Instruction) -> Result<(), &'static str> {
+    fn store(&mut self, i: Instruction) -> Result<(), InstructionError> {
         let rs1: Register = i
             .value(Part::Reg1)
-            .expect("invalid reg1")
+            .or(Err(InstructionError::InvalidArgument(Part::Reg1)))?
             .try_into()
             .expect("invalid register");
         let rs2: Register = i
             .value(Part::Reg2)
-            .expect("invalid reg2")
+            .or(Err(InstructionError::InvalidArgument(Part::Reg1)))?
             .try_into()
             .expect("invalid register");
         let f3 = i.value(Part::Funct3).expect("invalid funct3");
@@ -128,19 +132,19 @@ impl VM {
                     .expect("invalid memory access");
                 Ok(())
             }
-            _ => Err("invalid store instruction"),
+            _ => Err(InstructionError::InvalidOperation(Operation::Store)),
         }
     }
 
-    fn load(&mut self, i: Instruction) -> Result<(), &'static str> {
+    fn load(&mut self, i: Instruction) -> Result<(), InstructionError> {
         let rsd: Register = i
             .value(Part::Dest)
-            .expect("invalid dest")
+            .or(Err(InstructionError::InvalidArgument(Part::Dest)))?
             .try_into()
             .expect("invalid register");
         let rs1: Register = i
             .value(Part::Reg1)
-            .expect("invalid reg1")
+            .or(Err(InstructionError::InvalidArgument(Part::Reg1)))?
             .try_into()
             .expect("invalid register");
         let f3 = i.value(Part::Funct3).expect("invalid funct3");
@@ -213,14 +217,14 @@ impl VM {
                 self.cpu.register.set(rsd, value as u32);
                 Ok(())
             }
-            _ => Err("unknown load instruction"),
+            _ => Err(InstructionError::InvalidOperation(Operation::Load)),
         }
     }
 
-    fn add_upper_immediate(&mut self, i: Instruction) -> Result<(), &'static str> {
+    fn add_upper_immediate(&mut self, i: Instruction) -> Result<(), InstructionError> {
         let rsd: Register = i
             .value(Part::Dest)
-            .expect("invalid dest")
+            .or(Err(InstructionError::InvalidArgument(Part::Dest)))?
             .try_into()
             .expect("invalid register");
         let immediate = i.value(Part::Imm3112).expect("invalid immediate 31:12");
@@ -246,10 +250,10 @@ impl VM {
         Ok(())
     }
 
-    fn load_upper_immediate(&mut self, i: Instruction) -> Result<(), &'static str> {
+    fn load_upper_immediate(&mut self, i: Instruction) -> Result<(), InstructionError> {
         let rsd: Register = i
             .value(Part::Dest)
-            .expect("invalid dest")
+            .or(Err(InstructionError::InvalidArgument(Part::Dest)))?
             .try_into()
             .expect("invalid register");
         let immediate = i.value(Part::Imm3112).expect("invalid immediate 31:12");
@@ -273,15 +277,15 @@ impl VM {
     }
 
     #[allow(clippy::identity_op)] // readability
-    fn branch(&mut self, i: Instruction) -> Result<(), &'static str> {
+    fn branch(&mut self, i: Instruction) -> Result<(), InstructionError> {
         let rs1: Register = i
             .value(Part::Reg1)
-            .expect("invalid reg1")
+            .or(Err(InstructionError::InvalidArgument(Part::Reg1)))?
             .try_into()
             .expect("invalid register");
         let rs2: Register = i
             .value(Part::Reg2)
-            .expect("invalid reg2")
+            .or(Err(InstructionError::InvalidArgument(Part::Reg2)))?
             .try_into()
             .expect("invalid register");
         let f3 = i.value(Part::Funct3).expect("invalid funct3");
@@ -390,19 +394,19 @@ impl VM {
                 }
                 Ok(())
             }
-            _ => Err("invalid branch"),
+            _ => Err(InstructionError::InvalidOperation(Operation::Branch)),
         }
     }
 
-    fn unconditional_register_jump(&mut self, i: Instruction) -> Result<(), &'static str> {
+    fn unconditional_register_jump(&mut self, i: Instruction) -> Result<(), InstructionError> {
         let rsd: Register = i
             .value(Part::Dest)
-            .expect("invalid destination")
+            .or(Err(InstructionError::InvalidArgument(Part::Dest)))?
             .try_into()
             .expect("invalid register");
         let rs1: Register = i
             .value(Part::Reg1)
-            .expect("invalid reg1")
+            .or(Err(InstructionError::InvalidArgument(Part::Reg1)))?
             .try_into()
             .expect("invalid register");
         let immediate = i.value(Part::Imm110).expect("invalid immediate value 11:0");
@@ -438,10 +442,10 @@ impl VM {
     }
 
     #[allow(clippy::identity_op)] // readability
-    fn unconditional_jump(&mut self, i: Instruction) -> Result<(), &'static str> {
+    fn unconditional_jump(&mut self, i: Instruction) -> Result<(), InstructionError> {
         let rsd: Register = i
             .value(Part::Dest)
-            .expect("invalid destination")
+            .or(Err(InstructionError::InvalidArgument(Part::Dest)))?
             .try_into()
             .expect("invalid register");
         let immediate = 0
@@ -500,7 +504,7 @@ impl VM {
         Ok(())
     }
 
-    fn immediate_math(&mut self, i: Instruction) -> Result<(), &'static str> {
+    fn immediate_math(&mut self, i: Instruction) -> Result<(), InstructionError> {
         let f3 = i.value(Part::Funct3).expect("invalid f3");
 
         match f3 {
@@ -509,18 +513,18 @@ impl VM {
         }
     }
 
-    fn immediate_math_normal(&mut self, i: Instruction) -> Result<(), &'static str> {
+    fn immediate_math_normal(&mut self, i: Instruction) -> Result<(), InstructionError> {
         let f3 = i.value(Part::Funct3).expect("invalid f3");
         let immediate = i.value(Part::Imm110).expect("invalid imm110");
         let immediate = bitops::sign_extend(immediate, 12);
         let rs1: Register = i
             .value(Part::Reg1)
-            .expect("invalid reg1")
+            .or(Err(InstructionError::InvalidArgument(Part::Reg1)))?
             .try_into()
             .expect("invalid register");
         let rsd: Register = i
             .value(Part::Dest)
-            .expect("invalid dest")
+            .or(Err(InstructionError::InvalidArgument(Part::Dest)))?
             .try_into()
             .expect("invalid register");
 
@@ -603,11 +607,11 @@ impl VM {
                 );
                 Ok(())
             }
-            _ => Err("invalid immediate math operation"),
+            _ => Err(InstructionError::InvalidOperation(Operation::Branch)),
         }
     }
 
-    fn immediate_math_shift(&mut self, i: Instruction) -> Result<(), &'static str> {
+    fn immediate_math_shift(&mut self, i: Instruction) -> Result<(), InstructionError> {
         let f3 = i.value(Part::Funct3).unwrap();
         let raw_immediate = i.value(Part::Imm110).expect("invalid imm110");
 
@@ -616,12 +620,12 @@ impl VM {
 
         let rs1: Register = i
             .value(Part::Reg1)
-            .expect("invalid reg1")
+            .or(Err(InstructionError::InvalidArgument(Part::Reg1)))?
             .try_into()
             .expect("invalid register");
         let rsd: Register = i
             .value(Part::Dest)
-            .expect("invalid dest")
+            .or(Err(InstructionError::InvalidArgument(Part::Dest)))?
             .try_into()
             .expect("invalid register");
 
@@ -663,26 +667,26 @@ impl VM {
                     .set(rsd, self.cpu.register.get(rs1).wrapping_shr(immediate));
                 Ok(())
             }
-            _ => Err("invalid immediate math shift operation"),
+            _ => Err(InstructionError::InvalidOperation(Operation::ImmediateMath)),
         }
     }
 
-    fn register_math(&mut self, i: Instruction) -> Result<(), &'static str> {
+    fn register_math(&mut self, i: Instruction) -> Result<(), InstructionError> {
         let f3 = i.value(Part::Funct3).expect("invalid funct3");
         let f7 = i.value(Part::Funct7).expect("invalid funct7");
         let rs1: Register = i
             .value(Part::Reg1)
-            .expect("invalid reg1")
+            .or(Err(InstructionError::InvalidArgument(Part::Reg1)))?
             .try_into()
             .expect("invalid register");
         let rs2: Register = i
             .value(Part::Reg2)
-            .expect("invalid reg2")
+            .or(Err(InstructionError::InvalidArgument(Part::Reg2)))?
             .try_into()
             .expect("invalid register");
         let rsd: Register = i
             .value(Part::Dest)
-            .expect("invalid dest")
+            .or(Err(InstructionError::InvalidArgument(Part::Dest)))?
             .try_into()
             .expect("invalid register");
 
@@ -792,7 +796,7 @@ impl VM {
                 {
                     eprintln!("doing register math {:#05b}, {:#09b}:", f3, f7);
                 }
-                Err("unknown r2r operation")
+                Err(InstructionError::InvalidOperation(Operation::Math))
             }
         }
     }

@@ -1,5 +1,5 @@
 use super::format::Format;
-use super::operation::Operation;
+use super::operation::{Operation, OperationError};
 use super::part::Part;
 
 #[derive(Debug, Clone)]
@@ -10,7 +10,7 @@ pub struct Instruction {
 }
 
 impl Instruction {
-    pub fn parse(raw: u32) -> Result<Self, &'static str> {
+    pub fn parse(raw: u32) -> Result<Self, InstructionError> {
         let part = Part::Opcode;
         let opcode = part.get(raw).try_into()?;
 
@@ -22,22 +22,57 @@ impl Instruction {
     }
 
     #[cfg(test)]
-    pub(crate) fn get(&self, part: Part) -> Result<u32, ()> {
+    pub(crate) fn get(&self, part: Part) -> Result<u32, InstructionError> {
         for x in self.format.get() {
             if x == part {
                 return Ok(x.get(self.raw));
             }
         }
-        Err(())
+        Err(InstructionError::Get)
     }
 
-    pub fn value(&self, part: Part) -> Result<u32, ()> {
+    pub fn value(&self, part: Part) -> Result<u32, InstructionError> {
         for x in self.format.get() {
             if x == part {
                 return Ok(x.value(self.raw));
             }
         }
-        Err(())
+        Err(InstructionError::Value)
+    }
+}
+
+#[derive(Debug)]
+pub enum InstructionError {
+    #[cfg(test)]
+    Get,
+    Value,
+    Parse,
+
+    UnknownOperation(u32),
+    InvalidOperation(Operation),
+
+    InvalidArgument(Part),
+}
+
+impl From<OperationError> for InstructionError {
+    fn from(e: OperationError) -> Self {
+        match e {
+            OperationError::UnknownOpcode(raw) => Self::UnknownOperation(raw),
+        }
+    }
+}
+
+impl From<InstructionError> for String {
+    fn from(e: InstructionError) -> Self {
+        match e {
+            InstructionError::InvalidOperation(op) => format!("Invalid operation: {:?}", op),
+            InstructionError::InvalidArgument(part) => format!("Unknown argument: {:?}", part),
+            InstructionError::UnknownOperation(raw) => format!("Unknown operation: {}", raw),
+            InstructionError::Value => "Unable to extract value".to_owned(),
+            #[cfg(test)]
+            InstructionError::Get => "Unable to get part".to_owned(),
+            InstructionError::Parse => "Unable to parse instruction".to_owned(),
+        }
     }
 }
 
